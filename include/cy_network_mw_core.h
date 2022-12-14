@@ -45,6 +45,7 @@
 
 #include "cy_result.h"
 #include "cy_nw_helper.h"
+#include "cy_nw_mw_core_error.h"
 
 #ifdef __cplusplus
 extern "C" {

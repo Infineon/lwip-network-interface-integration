@@ -32,7 +32,9 @@ This library and its features are supported on the following platforms:
 
 - [XMC7200D-E272K8384 kit (KIT-XMC72-EVK)](https://www.infineon.com/KIT_XMC72_EVK)
 
-- [XMC4700/XMC4800 relax kit (KIT-XMC47-V1)](https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc47_relax_v1)
+- [XMC4700 Relax Kit (KIT_XMC47_RELAX_V1)](https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc47_relax_v1/)
+
+- [XMC4800 Relax EtherCAT Kit (KIT_XMC48_RELAX_ECAT_V1)](https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc48_relax_ecat_v1/)
 
 ## Log messages
 

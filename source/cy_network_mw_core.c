@@ -52,7 +52,6 @@
 #include "lwip/inet.h"
 #include "lwip/netdb.h"
 
-#include "cy_lwip_error.h"
 #include "cy_lwip_dhcp_server.h"
 #include "cy_network_mw_core.h"
 #include "cy_result.h"

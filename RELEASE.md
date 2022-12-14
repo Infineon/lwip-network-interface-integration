@@ -6,6 +6,12 @@ See the [README.md](./README.md) for a complete description of the [lwIP network
 
 ## Changelog
 
+### v1.1.0
+
+- Added support for KIT-XMC72-EVK kit
+
+- Minor documentation update
+
 ### v1.0.0
 
 - Initial release for lwIP network interface integration library

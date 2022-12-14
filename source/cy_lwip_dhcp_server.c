@@ -43,7 +43,7 @@
 #if LWIP_IPV4
 
 #include "cy_lwip_dhcp_server.h"
-#include "cy_lwip_error.h"
+#include "cy_nw_mw_core_error.h"
 #include "cyabs_rtos.h"
 #include "cy_lwip_log.h"
 #include <string.h>
