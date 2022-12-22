@@ -266,24 +266,40 @@ __WEAK void ETH_LWIP_Error (ETH_LWIP_ERROR_t error_code)
 {
     switch (error_code)
     {
-      case ETH_LWIP_ERROR_PHY_DEVICE_ID:
-         /* Incorrect PHY address configured in the ETH_LWIP APP network interface.
-          * Because the connect PHY does not match the configuration or the PHYADR is incorrect*/
-         break;
+        case ETH_LWIP_ERROR_PHY_DEVICE_ID:
+        {
+            /* Incorrect PHY address configured in the ETH_LWIP APP network interface.
+            * Because the connect PHY does not match the configuration or the PHYADR is incorrect*/
+            cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_ERR, "%s(): Wrong PHY ID used \n", __FUNCTION__ );
+            break;
+        }
 
-     case ETH_LWIP_ERROR_PHY_TIMEOUT:
-        /* PHY did not respond.*/
-        break;
+        case ETH_LWIP_ERROR_PHY_TIMEOUT:
+        {
+            /* PHY did not respond.*/
+            cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_ERR, "%s(): PHY read failed \n", __FUNCTION__ );
+            break;
+        }
 
-     case ETH_LWIP_ERROR_PHY_ERROR:
-       /*PHY register update failed.*/
-       break;
+        case ETH_LWIP_ERROR_PHY_ERROR:
+        {
+            /*PHY register update failed.*/
+            cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_ERR, "%s(): PHY status error \n", __FUNCTION__ );
+            break;
+        }
 
-     default:
-       break;
+        case ETH_LWIP_ERROR_PHY_BUSY:
+        {
+            cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_ERR, "%s(): PHY is busy \n", __FUNCTION__ );
+            break;
+        }
+        default:
+        {
+            cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_ERR, "%s(): Generic PHY error \n", __FUNCTION__ );
+            break;
+        }
     }
-
-    for (;;);
+    return;
 }
 
 #if LWIP_NETIF_LINK_CALLBACK == 1

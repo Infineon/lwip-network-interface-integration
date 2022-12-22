@@ -642,10 +642,10 @@ static cy_rslt_t cy_buffer_pool_create(uint32_t no_of_buffers, uint32_t sizeof_b
 
     /* Allocate memory for the actual buffer. Allocate additional MEM_BYTE_ALIGNMENT bytes to accommodate if the pointer returned is not 32 byte aligned */
     data_buffer = malloc((no_of_buffers * sizeof_buffer) + (header_size * no_of_buffers) + MEM_BYTE_ALIGNMENT);
-
     if (NULL == data_buffer)
     {
         cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Failed to allocate memory for actual data\n");
+        free(pool_handle);
         return CY_RSLT_NETWORK_ERROR_NOMEM;
     }
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Base address of allocated buffer : [%0x] sizeof(list_node_t):[%d]\n", data_buffer, sizeof(list_node_t));
@@ -653,7 +653,8 @@ static cy_rslt_t cy_buffer_pool_create(uint32_t no_of_buffers, uint32_t sizeof_b
     pool_handle->total_num_buf_created = no_of_buffers;
     pool_handle->sizeof_buffer = sizeof_buffer;
     pool_handle->data_buffer = data_buffer;
-
+    pool_handle->head = NULL;
+    
     /* Update the allocated data_buffer pointer to be 32 byte aligned */
     data_buffer_aligned = (uint8_t*)((size_t)data_buffer + ((size_t)MEM_BYTE_ALIGNMENT - ((size_t)data_buffer & 0x1F)));
     /* Iterate over and build up the chain of buffers */
@@ -1009,6 +1010,12 @@ cy_rslt_t cy_network_add_nw_interface(cy_network_hw_interface_type_t iface_type,
                 *iface_context = &(iface_context_database[index]);
                 break;
             }
+        }
+
+        /* Handling index out of bound exception */
+        if( index == 4 )
+        {
+            return CY_RSLT_NETWORK_BAD_ARG;
         }
     }
 
