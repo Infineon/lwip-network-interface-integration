@@ -50,10 +50,11 @@ var searchData=
   ['cy_5frslt_5fnetwork_5finterface_5fnetwork_5fnot_5fup_47',['CY_RSLT_NETWORK_INTERFACE_NETWORK_NOT_UP',['../group__generic__lwip__whd__port__defines.html#gabc1d83188fe0b29bbe0de950519a52a8',1,'cy_nw_mw_core_error.h']]],
   ['cy_5frslt_5fnetwork_5finvalid_5fsocket_48',['CY_RSLT_NETWORK_INVALID_SOCKET',['../group__generic__lwip__whd__port__defines.html#ga7325308cb997463c8372e84d4cdde4c7',1,'cy_nw_mw_core_error.h']]],
   ['cy_5frslt_5fnetwork_5fipv6_5finterface_5fnot_5fready_49',['CY_RSLT_NETWORK_IPV6_INTERFACE_NOT_READY',['../group__generic__lwip__whd__port__defines.html#ga0370d51c846f63d87078f684e27f93a7',1,'cy_nw_mw_core_error.h']]],
-  ['cy_5frslt_5fnetwork_5fnot_5fsupported_50',['CY_RSLT_NETWORK_NOT_SUPPORTED',['../group__generic__lwip__whd__port__defines.html#ga1ae343f44b7540a45f3680ba6d1a7226',1,'cy_nw_mw_core_error.h']]],
-  ['cy_5frslt_5fnetwork_5fport_5ferr_5fbase_51',['CY_RSLT_NETWORK_PORT_ERR_BASE',['../group__generic__lwip__whd__port__defines.html#ga64411e3dd47f1879323877c2370b9eec',1,'cy_nw_mw_core_error.h']]],
-  ['cy_5frslt_5fnetwork_5fsocket_5fcreate_5ffail_52',['CY_RSLT_NETWORK_SOCKET_CREATE_FAIL',['../group__generic__lwip__whd__port__defines.html#ga0be1337ee3c34383be5bc25b9492321f',1,'cy_nw_mw_core_error.h']]],
-  ['cy_5frslt_5fnetwork_5fsocket_5ferror_53',['CY_RSLT_NETWORK_SOCKET_ERROR',['../group__generic__lwip__whd__port__defines.html#ga0402c74db5d2b1251c2bc8ba16520bb5',1,'cy_nw_mw_core_error.h']]],
-  ['cy_5fwifimwcore_5feapol_5fpacket_5fhandler_5ft_54',['cy_wifimwcore_eapol_packet_handler_t',['../group__group__wifimwcore__eapol__functions.html#ga5d501ebe6f09b2f93384fc33de1617a0',1,'cy_wifimwcore_eapol.h']]],
-  ['cy_5fwifimwcore_5feapol_5fregister_5freceive_5fhandler_55',['cy_wifimwcore_eapol_register_receive_handler',['../group__group__wifimwcore__eapol__functions.html#gab3477cb9900a5387811bf337cb7d42b1',1,'cy_wifimwcore_eapol.h']]]
+  ['cy_5frslt_5fnetwork_5flink_5fnot_5fup_50',['CY_RSLT_NETWORK_LINK_NOT_UP',['../group__generic__lwip__whd__port__defines.html#gadd0ef95e5fb952dd62156060eaf25d2e',1,'cy_nw_mw_core_error.h']]],
+  ['cy_5frslt_5fnetwork_5fnot_5fsupported_51',['CY_RSLT_NETWORK_NOT_SUPPORTED',['../group__generic__lwip__whd__port__defines.html#ga1ae343f44b7540a45f3680ba6d1a7226',1,'cy_nw_mw_core_error.h']]],
+  ['cy_5frslt_5fnetwork_5fport_5ferr_5fbase_52',['CY_RSLT_NETWORK_PORT_ERR_BASE',['../group__generic__lwip__whd__port__defines.html#ga64411e3dd47f1879323877c2370b9eec',1,'cy_nw_mw_core_error.h']]],
+  ['cy_5frslt_5fnetwork_5fsocket_5fcreate_5ffail_53',['CY_RSLT_NETWORK_SOCKET_CREATE_FAIL',['../group__generic__lwip__whd__port__defines.html#ga0be1337ee3c34383be5bc25b9492321f',1,'cy_nw_mw_core_error.h']]],
+  ['cy_5frslt_5fnetwork_5fsocket_5ferror_54',['CY_RSLT_NETWORK_SOCKET_ERROR',['../group__generic__lwip__whd__port__defines.html#ga0402c74db5d2b1251c2bc8ba16520bb5',1,'cy_nw_mw_core_error.h']]],
+  ['cy_5fwifimwcore_5feapol_5fpacket_5fhandler_5ft_55',['cy_wifimwcore_eapol_packet_handler_t',['../group__group__wifimwcore__eapol__functions.html#ga5d501ebe6f09b2f93384fc33de1617a0',1,'cy_wifimwcore_eapol.h']]],
+  ['cy_5fwifimwcore_5feapol_5fregister_5freceive_5fhandler_56',['cy_wifimwcore_eapol_register_receive_handler',['../group__group__wifimwcore__eapol__functions.html#gab3477cb9900a5387811bf337cb7d42b1',1,'cy_wifimwcore_eapol.h']]]
 ];

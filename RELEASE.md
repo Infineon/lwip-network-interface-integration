@@ -6,6 +6,10 @@ See the [README.md](./README.md) for a complete description of the [lwIP network
 
 ## Changelog
 
+### v1.1.2
+
+- Minor bug fixes
+
 ### v1.1.1
 
 - Minor bug fixes

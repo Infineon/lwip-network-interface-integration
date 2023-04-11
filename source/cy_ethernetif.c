@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2023, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -1013,13 +1013,12 @@ static void ethernetif_input(void *arg)
     struct pbuf *p = NULL;
     struct eth_hdr *ethhdr;
     struct netif *netif = (struct netif *)arg;
-    bool is_from_isr = false;
 
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s():%d netif:[%p]\n", __func__, __LINE__, netif);
 
     while(1)
     {
-        cy_rtos_get_semaphore( &rx_semaphore, CY_RTOS_NEVER_TIMEOUT, is_from_isr );
+        cy_rtos_get_semaphore( &rx_semaphore, CY_RTOS_NEVER_TIMEOUT, false );
 
         /* Receive data from RX descriptor, post data to queue, enable IRQ. */
         NVIC_DisableIRQ((IRQn_Type)108);
