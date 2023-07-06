@@ -2102,6 +2102,8 @@ static bool is_network_up(uint8_t interface_index)
 static cy_rslt_t is_interface_valid(cy_network_interface_context *iface)
 {
     if( (iface == NULL) ||
+        (iface->nw_interface == NULL) ||
+        (iface->hw_interface == NULL) ||
         (((iface->iface_type != CY_NETWORK_WIFI_STA_INTERFACE) && (iface->iface_type != CY_NETWORK_WIFI_AP_INTERFACE)) &&
         (iface->iface_type != CY_NETWORK_ETH_INTERFACE) && (iface->iface_idx >= MAX_ETHERNET_PORT))
       )

@@ -743,16 +743,16 @@ uint8_t unsigned_to_decimal_string( uint32_t value, char* output, uint8_t min_le
  * @param[out] buffer       : Buffer which will receive the IPv4 string
  * @param[in]  ipv4_address : IPv4 address to convert
  */
-static void ipv4_to_string( char buffer[16], uint32_t ipv4_address )
+static void ipv4_to_string( char* buffer, uint32_t ipv4_address )
 {
     uint8_t* ip = (uint8_t*)&ipv4_address;
-    unsigned_to_decimal_string(ip[0], &buffer[0], 3, 3);
-    buffer[3] = '.';
-    unsigned_to_decimal_string(ip[1], &buffer[4], 3, 3);
-    buffer[7] = '.';
-    unsigned_to_decimal_string(ip[2], &buffer[8], 3, 3);
-    buffer[11] = '.';
-    unsigned_to_decimal_string(ip[3], &buffer[12], 3, 3);
+    unsigned_to_decimal_string(ip[0], buffer, 3, 3);
+    *(buffer + 3) = '.';
+    unsigned_to_decimal_string(ip[1], buffer + 4, 3, 3);
+    *(buffer + 7) = '.';
+    unsigned_to_decimal_string(ip[2], buffer + 8, 3, 3);
+    *(buffer + 11) = '.';
+    unsigned_to_decimal_string(ip[3], buffer + 12, 3, 3);
 }
 
 
