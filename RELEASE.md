@@ -6,6 +6,10 @@ See the [README.md](./README.md) for a complete description of the [lwIP network
 
 ## Changelog
 
+### v1.2.0
+
+- Added support for KIT_XMC72_EVK_MUR_43439M2 kit
+
 ### v1.1.3
 
 - Minor bug fixes
