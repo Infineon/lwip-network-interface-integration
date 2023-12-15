@@ -6,6 +6,11 @@ See the [README.md](./README.md) for a complete description of the [lwIP network
 
 ## Changelog
 
+### v1.3.0
+
+- Minor changes in .cyignore
+- Added support for CY8CEVAL-062S2-CYW43022CUB kit
+
 ### v1.2.0
 
 - Added support for KIT_XMC72_EVK_MUR_43439M2 kit

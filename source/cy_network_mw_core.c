@@ -633,7 +633,7 @@ static cy_rslt_t cy_buffer_pool_create(uint32_t no_of_buffers, uint32_t sizeof_b
     pool_handle->sizeof_buffer = sizeof_buffer;
     pool_handle->data_buffer = data_buffer;
     pool_handle->head = NULL;
-    
+
     /* Update the allocated data_buffer pointer to be 32 byte aligned */
     data_buffer_aligned = (uint8_t*)((size_t)data_buffer + ((size_t)MEM_BYTE_ALIGNMENT - ((size_t)data_buffer & 0x1F)));
     /* Iterate over and build up the chain of buffers */
@@ -1381,6 +1381,18 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
                     activity_callback(true);
                 }
                 netifapi_dhcp_release_and_stop(LWIP_IP_HANDLE(interface_index));
+                cy_rtos_delay_milliseconds(DHCP_STOP_DELAY_IN_MS);
+
+                /*
+                * If LPA is enabled, invoke the activity callback to resume the network stack
+                * before invoking the lwIP APIs that require the TCP core lock.
+                */
+                if (activity_callback)
+                {
+                    activity_callback(true);
+                }
+
+                dhcp_cleanup(LWIP_IP_HANDLE(interface_index));
 #if LWIP_AUTOIP
                 int   tries = 0;
                 cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_INFO, "Unable to obtain IP address via DHCP. Perform Auto IP\n");

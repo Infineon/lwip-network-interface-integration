@@ -38,6 +38,8 @@ This library and its features are supported on the following platforms:
 
 - [XMC7200D-E272K8384 kit (KIT_XMC72_EVK_MUR_43439M2)](https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc72_evk/)
 
+- [PSoC&trade; 62S2 evaluation kit (CY8CEVAL-062S2-CYW43022CUB)](https://www.infineon.com/cms/en/product/evaluation-boards/cy8ceval-062s2/)
+
 ## Log messages
 
 By default, the lwIP network interface integration library disables all debug log messages. Do the following to enable log messages:

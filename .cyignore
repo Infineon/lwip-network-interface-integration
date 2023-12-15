@@ -40,6 +40,3 @@ $(SEARCH_mbedtls)/library/net_sockets.c
 
 ../wifi-host-driver/docs
 $(SEARCH_wifi-host-driver)/docs
-
-../mbedtls/library/psa_crypto_driver_wrappers.c
-$(SEARCH_mbedtls)/library/psa_crypto_driver_wrappers.c
