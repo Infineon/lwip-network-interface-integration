@@ -6,6 +6,10 @@ See the [README.md](./README.md) for a complete description of the [lwIP network
 
 ## Changelog
 
+### v1.4.0
+
+- Added support for CY8CEVAL-062S2-CYW955513SDM2WLIPA kit
+
 ### v1.3.1
 
 - Added function to generate random number using trng 
