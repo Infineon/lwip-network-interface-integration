@@ -180,7 +180,7 @@ static   cy_network_activity_event_callback_t activity_callback = NULL;
 extern   cy_network_interface_context         iface_context_database[CY_IFACE_MAX_HANDLE];
 extern   cy_worker_thread_info_t              cy_rx_worker_thread;
 extern   cy_queue_t                           rx_input_buffer_queue;
-LWIP_MEMPOOL_DECLARE(RX_POOL, NO_OF_MEMPOOL_ELEMENTS, sizeof(my_custom_pbuf_t), "Zero-copy RX PBUF pool");
+LWIP_MEMPOOL_DECLARE(RX_POOL, ETH_RX_NO_OF_MEMPOOL_ELEMENTS, sizeof(my_custom_pbuf_t), "Zero-copy RX PBUF pool");
 #endif
 
 #ifdef COMPONENT_CAT3

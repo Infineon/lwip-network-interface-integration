@@ -773,14 +773,14 @@ cy_rslt_t cy_network_init( void )
         return CY_RSLT_NETWORK_ERROR_RTOS;
     }
 
-    if(cy_rtos_init_queue(&rx_input_buffer_queue, NO_OF_BUFFERS, sizeof(uint32_t)) != CY_RSLT_SUCCESS)
+    if(cy_rtos_init_queue(&rx_input_buffer_queue, ETH_RX_NO_OF_BUFFERS, sizeof(uint32_t)) != CY_RSLT_SUCCESS)
     {
         cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Failed to initialize queue to store input free buffers\n");
         cy_worker_thread_delete(&cy_rx_worker_thread);
         return CY_RSLT_NETWORK_ERROR_RTOS;
     }
 
-    if(cy_buffer_pool_create(NO_OF_BUFFERS, (sizeof(cy_rx_buffer_info_t) + CY_ETH_SIZE_MAX_FRAME), &rx_pool_handle)!= CY_RSLT_SUCCESS)
+    if(cy_buffer_pool_create(ETH_RX_NO_OF_BUFFERS, (sizeof(cy_rx_buffer_info_t) + CY_ETH_SIZE_MAX_FRAME), &rx_pool_handle)!= CY_RSLT_SUCCESS)
     {
         cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Failed to create buffer pool\n");
         cy_rtos_deinit_queue(&rx_input_buffer_queue);
@@ -958,6 +958,7 @@ cy_rslt_t cy_network_add_nw_interface(cy_network_hw_interface_type_t iface_type,
 {
     bool iface_found = false;
     uint8_t index = 0;
+    uint8_t eth_index = iface_idx;
 #if LWIP_IPV4
     ip4_addr_t ipaddr, netmask, gateway ;
 #endif
@@ -1054,10 +1055,51 @@ cy_rslt_t cy_network_add_nw_interface(cy_network_hw_interface_type_t iface_type,
     }
     else
     {
-        cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_INFO, "static_ipaddr is NULL \n");
+        cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_INFO, "static_ipaddr from application API is NULL \n");
         memset(&gateway, 0, sizeof(gateway));
         memset(&ipaddr, 0, sizeof(ipaddr));
         memset(&netmask, 0, sizeof(netmask));
+    }
+
+    /* Set static IP from the device configurator. If static IP is set from both application
+     * API and device configurator then device configurator parameters will take the precedence */
+    if( eth_index == 0 )
+    {
+        /* Add interface is called for ETH0 */
+#if (defined(CYBSP_ETHERNET_CAPABLE))
+#if (defined(eth_0_STATIC_IP) && (eth_0_STATIC_IP == 1u))
+        /* Static IP from device configurator enabled. Configure static IP to network stack */
+        uint32_t gw_addr = (uint32_t)eth_0_GATEWAY_IP_ADDR;
+        uint32_t ip_addr = (uint32_t)eth_0_IP_ADDR;
+        uint32_t subnet_mk = (uint32_t)eth_0_SUBNET_MASK;
+        memcpy(&gateway, &gw_addr, sizeof(gateway));
+        memcpy(&ipaddr, &ip_addr, sizeof(ipaddr));
+        memcpy(&netmask, &subnet_mk, sizeof(netmask));
+#else
+        /* Static IP from device configurator disabled. Configure DHCP to network stack */
+        memset(&gateway, 0, sizeof(gateway));
+        memset(&ipaddr, 0, sizeof(ipaddr));
+        memset(&netmask, 0, sizeof(netmask));
+#endif
+    }
+    else
+    {
+        /* Add interface is called for ETH1 */
+#if (defined(eth_1_STATIC_IP) && (eth_1_STATIC_IP == 1u))
+        /* Static IP from device configurator enabled. Configure static IP to network stack */
+        uint32_t gw_addr = (uint32_t)eth_1_GATEWAY_IP_ADDR;
+        uint32_t ip_addr = (uint32_t)eth_1_IP_ADDR;
+        uint32_t subnet_mk = (uint32_t)eth_1_SUBNET_MASK;
+        memcpy(&gateway, &gw_addr, sizeof(gateway));
+        memcpy(&ipaddr, &ip_addr, sizeof(ipaddr));
+        memcpy(&netmask, &subnet_mk, sizeof(netmask));
+#else
+        /* Static IP from device configurator disabled. Configure DHCP to network stack */
+        memset(&gateway, 0, sizeof(gateway));
+        memset(&ipaddr, 0, sizeof(ipaddr));
+        memset(&netmask, 0, sizeof(netmask));
+#endif
+#endif
     }
 #endif
 
@@ -1149,10 +1191,15 @@ cy_rslt_t cy_network_add_nw_interface(cy_network_hw_interface_type_t iface_type,
 
     if(iface_context_database[index].iface_type == CY_NETWORK_ETH_INTERFACE)
     {
-        if(static_ipaddr == NULL)
-        {
-            is_dhcp_client_required = true;
-        }
+        /* If DHCP from application is enabled and static IP from Device configurator is set.
+         * Then, configure static IP. */
+#if ((defined (eth_0_STATIC_IP) && (eth_0_STATIC_IP == 1u)) || (defined (eth_1_STATIC_IP) && (eth_1_STATIC_IP == 1u)))
+        is_dhcp_client_required = false;
+        cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG,"Static IP configured. Do not enable DHCP client\n");
+#else
+        is_dhcp_client_required = true;
+        cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG,"DHCP configured. Enable DHCP client\n");
+#endif
     }
 
 #endif

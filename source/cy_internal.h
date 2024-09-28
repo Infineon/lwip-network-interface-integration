@@ -38,6 +38,7 @@
 #ifdef COMPONENT_CAT1
 #include "cy_ethif.h"
 #include "cy_ephy.h"
+#include "cycfg.h"
 
 /******************************************************
  *                      Macros
@@ -46,8 +47,15 @@
  * Maximum number of interface instances supported.
  */
 #define CY_IFACE_MAX_HANDLE    (4U)
-#define NO_OF_BUFFERS          (40)
-#define NO_OF_MEMPOOL_ELEMENTS (50)
+#ifndef ETH_RX_NO_OF_BUFFERS
+#define ETH_RX_NO_OF_BUFFERS   (30)
+#endif
+
+#if defined CYCFG_PBUF_POOL_SIZE
+#define ETH_RX_NO_OF_MEMPOOL_ELEMENTS   (CYCFG_PBUF_POOL_SIZE)
+#else
+#define ETH_RX_NO_OF_MEMPOOL_ELEMENTS   (50)
+#endif
 #define MEM_BYTE_ALIGNMENT     (32)
 /******************************************************
  *                      Type definitions
