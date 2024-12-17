@@ -168,6 +168,7 @@ int errno;
 static cy_network_activity_event_callback_t activity_callback = NULL;
 static bool is_dhcp_client_required = false;
 #if defined(CYBSP_WIFI_CAPABLE)
+static cy_network_rx_queue_callback_t rx_queue_callback = NULL;
 static cy_wifimwcore_eapol_packet_handler_t internal_eapol_packet_handler = NULL;
 #endif
 static cy_network_ip_change_callback_t ip_change_callback = NULL;
@@ -329,6 +330,15 @@ void cy_network_process_ethernet_data(whd_interface_t iface, whd_buffer_t buf)
         if (activity_callback)
         {
             activity_callback(false);
+        }
+
+        if(rx_queue_callback)
+        {
+            /* rx_queue_callback will be registered only when the network stack is being suspended.
+             * This will help to queue the incoming packets during the wake sequence until
+             * the network stack is ready to accept and process packets. */
+            rx_queue_callback((void*)net_interface, (void*)buf);
+            return;
         }
 
         cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Send data up to LwIP \n");
@@ -1680,8 +1690,21 @@ void cy_network_activity_register_cb(cy_network_activity_event_callback_t cb)
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s(): START \n", __FUNCTION__ );
     /* Update the activity callback with the argument passed */
     activity_callback = cb;
-    cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s(): END \n", __FUNCTION__ );}
+    cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s(): END \n", __FUNCTION__ );
+}
 
+#if defined(CYBSP_WIFI_CAPABLE)
+/*
+ * This function helps to register/deregister the callback for queuing the RX packets
+ */
+void cy_network_register_rx_queue_cb(cy_network_rx_queue_callback_t cb)
+{
+    cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s(): START \n", __FUNCTION__ );
+    /* Update the RX queue callback with the argument passed */
+    rx_queue_callback = cb;
+    cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s(): END \n", __FUNCTION__ );
+}
+#endif
 /*
  * This function notifies the network activity to the LPA module.
  */

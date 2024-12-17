@@ -6,6 +6,10 @@ See the [README.md](./README.md) for a complete description of the [lwIP network
 
 ## Changelog
 
+### v1.5.0
+
+- Added support for D-cache enablement on XMC7000 devices
+
 ### v1.4.1
 
 - Changes to support DHCP or static IP configurations based on device configurator settings
@@ -57,11 +61,11 @@ This version of the library was validated for compatibility with the following s
 
 | Software and tools                                           | Version |
 | :---                                                         | :----:  |
-| ModusToolbox&trade; software environment                     | 3.2     |
-| ModusToolbox&trade; Device Configurator                      | 4.20    |
+| ModusToolbox&trade; software environment                     | 3.3     |
+| ModusToolbox&trade; Device Configurator                      | 5.10    |
 | GCC compiler                                                 | 11.3.1  |
-| IAR compiler                                                 | 9.40.2  |
-| Arm&reg; compiler 6                                          | 6.16    |
+| IAR compiler                                                 | 9.50.2  |
+| Arm&reg; compiler 6                                          | 6.22    |
 
 
 ## Additional information

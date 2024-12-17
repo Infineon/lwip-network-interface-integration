@@ -633,6 +633,12 @@ static void rx_data_event_handler(void* arg)
         cy_rtos_count_queue(&rx_input_buffer_queue, &num_waiting);
         cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "the number of items currently in the queue:[%d]\n", num_waiting);
 #endif
+
+        /* Invalidate dcache if enabled to update dcache's contents after DMA transfer */
+#if !defined (CY_DISABLE_XMC7000_DATA_CACHE) && defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+        SCB_InvalidateDCache_by_Addr((void *) rx_buffer_info->rx_data_ptr, rx_buffer_info->length);
+#endif
+
         /* Call netif->input */
         /* If the interface is not yet set up, drop the packet here. */
         if (netif->input == NULL || netif->input(p, netif) != ERR_OK)
@@ -870,6 +876,10 @@ static err_t ethif_output(struct netif *netif, struct pbuf *p)
 
 #if ETH_PAD_SIZE
     pbuf_header(p, ETH_PAD_SIZE);    /* Reclaim the padding word. */
+#endif
+
+#if !defined (CY_DISABLE_XMC7000_DATA_CACHE) && defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
+    SCB_CleanDCache_by_Addr((void*)data_buffer[tx_free_buf_index], framelen);
 #endif
 
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s(): Before Start transmitting frame p->tot_len:[%d] p->len:[%d] \n", __FUNCTION__, p->tot_len, p->len );

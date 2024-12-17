@@ -262,6 +262,27 @@ typedef void (*cy_network_activity_event_callback_t)(bool event_type);
  */
 void cy_network_activity_register_cb(cy_network_activity_event_callback_t cb);
 
+/** \cond INTERNAL */
+#if defined(CYBSP_WIFI_CAPABLE)
+/**
+ * RX queue callback function prototype.
+ * The callback function which can be registered/unregistered to queue any RX packets
+ * must be of this prototype.
+ */
+typedef void (*cy_network_rx_queue_callback_t)(void *iface, void* buf);
+
+/**
+ * Helps to register/unregister a callback function that will be invoked on RX activity on any
+ * network interface to queue the incoming packets until the network stack is ready to process them.
+ * Passing "NULL" as cb will deregister the callback.
+ *
+ * @param[in] cb RX queue callback function
+ *
+ */
+void cy_network_register_rx_queue_cb(cy_network_rx_queue_callback_t cb);
+#endif
+/** \endcond */
+
 /**
  * Notifies the network activity to the Low Power Assistant (LPA) module
  *

@@ -66,13 +66,13 @@ To ensure that all required libraries are fetched, include [ethernet-core-freert
 
    Create the *wifi-core-freertos-lwip-mbedtls.mtb* file with the following content:
 
-   `https://github.com/Infineon/wifi-core-freertos-lwip-mbedtls#latest-v1.X#\$$ASSET_REPO$$/wifi-core-freertos-lwip-mbedtls/latest-v1.X`
+   `https://github.com/Infineon/wifi-core-freertos-lwip-mbedtls#latest-v2.X#\$$ASSET_REPO$$/wifi-core-freertos-lwip-mbedtls/latest-v2.X`
 
 - *For Ethernet applications:*
 
    Create the *ethernet-core-freertos-lwip-mbedtls.mtb* file with the following content:
 
-   `https://github.com/Infineon/ethernet-core-freertos-lwip-mbedtls#latest-v1.X#\$$ASSET_REPO$$/ethernet-core-freertos-lwip-mbedtls/latest-v1.X`
+   `https://github.com/Infineon/ethernet-core-freertos-lwip-mbedtls#latest-v2.X#\$$ASSET_REPO$$/ethernet-core-freertos-lwip-mbedtls/latest-v2.X`
 
 - Run `make getlibs` to fetch all required libraries including the lwip-network-interface-integration library.
 
