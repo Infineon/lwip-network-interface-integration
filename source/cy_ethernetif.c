@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -54,6 +54,9 @@
 #include "lwip/icmp.h"
 #include "lwip/inet.h"
 #include "lwip/netdb.h"
+#if NO_SYS
+#include "lwip/timeouts.h"
+#endif
 
 #include "cy_lwip_dhcp_server.h"
 #include "cy_network_mw_core.h"
@@ -61,17 +64,22 @@
 #include "cy_lwip_log.h"
 
 #ifdef COMPONENT_CAT3
+#include "cycfg.h"
 #include "xmc_gpio.h"
 #include "xmc_eth_mac.h"
 #include "xmc_eth_phy.h"
 #include "cy_eth_config.h"
+#if !NO_SYS
 #include "cyabs_rtos.h"
+#endif
 #endif
 
 #ifdef COMPONENT_CAT1
 #include "cy_ecm.h"
 #include "cy_internal.h"
 #endif
+
+#include "cy_lwip_internal.h"
 
 /******************************************************
  *                      Macros
@@ -80,6 +88,8 @@
  * Suppress unused parameter warning
  */
 #define UNUSED_PARAMETER(x) ( (void)(x) )
+
+#define CY_ETHERNET_LINK_STATUS_POLL_INTERVAL_MS (1000U)
 
 /**
  * Suppress unused variable warning
@@ -102,32 +112,10 @@
 #define MAX_ETHERNET_PORT                        (2U)
 #define ETH_INTERFACE_INDEX                      (2U)
 #define MAX_ETH_FRAME_SIZE                       (1500U)
-/* MAC address*/
-#define MAC_ADDR0                                (0x00U)
-#define MAC_ADDR1                                (0x03U)
-#define MAC_ADDR2                                (0x19U)
-#define MAC_ADDR3                                (0x45U)
-#define MAC_ADDR4                                (0x00U)
-#define MAC_ADDR5                                (0x00U)
-
-#define MAC_ADDR                                 ((uint64_t)MAC_ADDR0 | \
-                                                  ((uint64_t)MAC_ADDR1 << 8) | \
-                                                  ((uint64_t)MAC_ADDR2 << 16) | \
-                                                  ((uint64_t)MAC_ADDR3 << 24) | \
-                                                  ((uint64_t)MAC_ADDR4 << 32) | \
-                                                  ((uint64_t)MAC_ADDR5 << 40))
-
-#define ETH_LWIP_0_PHY_ADDR                      (0)
-
-#define ETH_LWIP_0_NUM_RX_BUF                    (4U)
-#define ETH_LWIP_0_NUM_TX_BUF                    (4U)
 
 /* Define those to better describe your network interface. */
 #define IFNAME0                                  'e'
 #define IFNAME1                                  'n'
-
-/*Maximum retry iterations for phy auto-negotiation*/
-#define ETH_LWIP_PHY_MAX_RETRIES                 0xfffffU
 
 #define ETH_MIN_FRAME_SIZE                      (64)
 #define ETH_MAX_FRAME_SIZE                      (1518)
@@ -135,27 +123,37 @@
 #define ETH_FRAME_SIZE_HEADER                   (14) // 6 bytes for destination address, 6 bytes for source address, 2 bytes for Type (This is constant.)
 
 #ifdef COMPONENT_CAT3
-#define CY_ETH_SIZE_MAX_FRAME                   (1500)
+#if !defined(eth_0_mux_0_PHY_ADDR)
+#error "Enable Ethernet(ETH) peripheral from device configurator to resolve build errors."
+#endif
 
-#define ETH_LWIP_0_CRS_DV  XMC_GPIO_PORT15, 9U
-#define ETH_LWIP_0_RXER  XMC_GPIO_PORT2, 4U
-#define ETH_LWIP_0_RXD0  XMC_GPIO_PORT2, 2U
-#define ETH_LWIP_0_RXD1  XMC_GPIO_PORT2, 3U
-#define ETH_LWIP_0_TXEN  XMC_GPIO_PORT2, 5U
-#define ETH_LWIP_0_TXD0  XMC_GPIO_PORT2, 8U
-#define ETH_LWIP_0_TXD1  XMC_GPIO_PORT2, 9U
-#define ETH_LWIP_0_RMII_CLK  XMC_GPIO_PORT15, 8U
-#define ETH_LWIP_0_MDC  XMC_GPIO_PORT2, 7U
-#define ETH_LWIP_0_MDIO  XMC_GPIO_PORT2, 0U
-#define ETH_LWIP_0_PIN_LIST_SIZE 10U
+#define ETH_LWIP_0_PHY_ADDR                      eth_0_mux_0_PHY_ADDR
+
+#define ETH_LWIP_0_NUM_RX_BUF                    eth_0_mux_0_MTL_NUM_RX_BUF //(4U)
+#define ETH_LWIP_0_NUM_TX_BUF                    eth_0_mux_0_MTL_NUM_TX_BUF //(4U)
+
+/*Maximum retry iterations for phy auto-negotiation*/
+#define ETH_LWIP_PHY_MAX_RETRIES                 0xfffffU
+
+#define CY_ETH_SIZE_MAX_FRAME                   (1500)
 
 #ifdef ENABLE_ECM_LOGS
     #define RX_STATUS_THREAD_STACK_SIZE         ((1024 * 1) + (1024 * 3)) /* Additional 3kb of stack is added for enabling the prints */
 #else
     #define RX_STATUS_THREAD_STACK_SIZE         (1024)
 #endif
+#if defined CYCFG_ETHERNET_THREAD_STACKSIZE
+#define RX_EVENT_THREAD_STACK_SIZE              (CYCFG_ETHERNET_THREAD_STACKSIZE)
+#else
 #define RX_EVENT_THREAD_STACK_SIZE              (1024 * 4)
+#endif
+
+#if defined CYCFG_ETHERNET_THREAD_PRIO
+#define RX_EVENT_THREAD_PRIORITY                (CYCFG_ETHERNET_THREAD_PRIO)
+#else
 #define RX_EVENT_THREAD_PRIORITY                (CY_RTOS_PRIORITY_ABOVENORMAL)
+#endif
+
 #define RX_STATUS_THREAD_PRIORITY               (CY_RTOS_PRIORITY_BELOWNORMAL)
 #endif
 
@@ -184,9 +182,11 @@ LWIP_MEMPOOL_DECLARE(RX_POOL, ETH_RX_NO_OF_MEMPOOL_ELEMENTS, sizeof(my_custom_pb
 #endif
 
 #ifdef COMPONENT_CAT3
+#if !NO_SYS
 static cy_semaphore_t           rx_semaphore = NULL;
 static cy_thread_t              rx_event_thread = NULL;
 static cy_thread_t              link_status_thread = NULL;
+#endif /* NO_SYS */
 
 #if defined(__ICCARM__)
 #pragma data_alignment=4
@@ -216,14 +216,20 @@ static __attribute__((aligned(4))) uint8_t ETH_LWIP_0_tx_buf[ETH_LWIP_0_NUM_TX_B
 
 const XMC_ETH_PHY_CONFIG_t eth_phy_config =
 {
-    .interface = XMC_ETH_LINK_INTERFACE_RMII,
+    .interface = (XMC_ETH_LINK_INTERFACE_t)eth_0_mux_0_PHY_INTERCONNECT,
+#if (defined(eth_0_mux_0_AUTONEGOTIATION) && (eth_0_mux_0_AUTONEGOTIATION == 1u))
     .enable_auto_negotiate = true
+#else
+    .enable_auto_negotiate = false,
+    .duplex = eth_0_mux_0_PHY_MODE,
+    .speed = eth_0_mux_0_PHY_SPEED
+#endif
 };
 
 XMC_ETH_MAC_t eth_mac =
 {
     .regs = ETH0,
-    .address = MAC_ADDR,
+    .address = eth_0_mux_0_MAC_ADDR,
     .rx_desc = ETH_LWIP_0_rx_desc,
     .tx_desc = ETH_LWIP_0_tx_desc,
     .rx_buf = &ETH_LWIP_0_rx_buf[0][0],
@@ -305,45 +311,56 @@ __WEAK void ETH_LWIP_Error (ETH_LWIP_ERROR_t error_code)
 #if LWIP_NETIF_LINK_CALLBACK == 1
 static void ethernetif_link_callback(struct netif *netif)
 {
-    XMC_ETH_LINK_SPEED_t speed;
-    XMC_ETH_LINK_DUPLEX_t duplex;
-    bool phy_autoneg_state;
-    uint32_t retries = 0U;
+    static uint8_t is_phy_configured = false;
     int32_t status;
 
     if (netif_is_link_up(netif))
     {
-        if((status = XMC_ETH_PHY_Init(&eth_mac, ETH_LWIP_0_PHY_ADDR, &eth_phy_config)) != XMC_ETH_PHY_STATUS_OK)
+        if (!is_phy_configured)
         {
-            ETH_LWIP_Error((ETH_LWIP_ERROR_t)status);
+            if((status = XMC_ETH_PHY_Init(&eth_mac, ETH_LWIP_0_PHY_ADDR, &eth_phy_config)) != XMC_ETH_PHY_STATUS_OK)
+            {
+                ETH_LWIP_Error((ETH_LWIP_ERROR_t)status);
+            }
+#if (defined(eth_0_mux_0_AUTONEGOTIATION) && (eth_0_mux_0_AUTONEGOTIATION == 1u))
+            XMC_ETH_LINK_SPEED_t speed;
+            XMC_ETH_LINK_DUPLEX_t duplex;
+            uint32_t retries = 0U;
+            bool phy_autoneg_state = false;
+
+            /* If autonegotiation is enabled */
+            do {
+                phy_autoneg_state = XMC_ETH_PHY_IsAutonegotiationCompleted(&eth_mac, ETH_LWIP_0_PHY_ADDR);
+                retries++;
+            } while ((phy_autoneg_state == false) && (retries < ETH_LWIP_PHY_MAX_RETRIES));
+
+            if(phy_autoneg_state == false)
+            {
+                ETH_LWIP_Error(ETH_LWIP_ERROR_PHY_TIMEOUT);
+            }
+
+            speed = XMC_ETH_PHY_GetLinkSpeed(&eth_mac, ETH_LWIP_0_PHY_ADDR);
+            duplex = XMC_ETH_PHY_GetLinkDuplex(&eth_mac, ETH_LWIP_0_PHY_ADDR);
+
+            XMC_ETH_MAC_SetLink(&eth_mac, speed, duplex);
+#else
+            XMC_ETH_MAC_SetLink(&eth_mac, eth_0_mux_0_PHY_SPEED, eth_0_mux_0_PHY_MODE);
+#endif
         }
+        is_phy_configured = true;
 
-        /* If autonegotiation is enabled */
-        do {
-            phy_autoneg_state = XMC_ETH_PHY_IsAutonegotiationCompleted(&eth_mac, ETH_LWIP_0_PHY_ADDR);
-            retries++;
-        } while ((phy_autoneg_state == false) && (retries < ETH_LWIP_PHY_MAX_RETRIES));
-
-        if(phy_autoneg_state == false)
-        {
-            ETH_LWIP_Error(ETH_LWIP_ERROR_PHY_TIMEOUT);
-        }
-
-        speed = XMC_ETH_PHY_GetLinkSpeed(&eth_mac, ETH_LWIP_0_PHY_ADDR);
-        duplex = XMC_ETH_PHY_GetLinkDuplex(&eth_mac, ETH_LWIP_0_PHY_ADDR);
-
-        XMC_ETH_MAC_SetLink(&eth_mac, speed, duplex);
+#if (defined(eth_0_mux_0_RXD_POLLING_EN) && (eth_0_mux_0_RXD_POLLING_EN == 0u))
         /* Enable Ethernet interrupts */
         XMC_ETH_MAC_EnableEvent(&eth_mac, (uint32_t)XMC_ETH_MAC_EVENT_RECEIVE);
 
         NVIC_SetPriority((IRQn_Type)108, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 62U, 0U));
         NVIC_ClearPendingIRQ((IRQn_Type)108);
         NVIC_EnableIRQ((IRQn_Type)108);
+#endif
         XMC_ETH_MAC_EnableTx(&eth_mac);
         XMC_ETH_MAC_EnableRx(&eth_mac);
 
-        netifapi_netif_set_up(xnetif);
-
+        CY_LWIP_NETIF_API_VOID_RET(netif_set_up(xnetif));
     }
     else
     {
@@ -354,8 +371,7 @@ static void ethernetif_link_callback(struct netif *netif)
         XMC_ETH_MAC_DisableTx(&eth_mac);
         XMC_ETH_MAC_DisableRx(&eth_mac);
 
-        netifapi_netif_set_down(xnetif);
-
+        CY_LWIP_NETIF_API_VOID_RET(netif_set_down(xnetif));
     }
 }
 #endif
@@ -364,7 +380,9 @@ static void ethernetif_link_status(void *args)
 {
     UNUSED_PARAMETER(args);
 
+#if !NO_SYS
     while(1)
+#endif
     {
         if (XMC_ETH_PHY_GetLinkStatus(&eth_mac, ETH_LWIP_0_PHY_ADDR) == XMC_ETH_LINK_STATUS_DOWN)
         {
@@ -380,8 +398,11 @@ static void ethernetif_link_status(void *args)
                 netif_set_link_up(xnetif);
             }
         }
-
-        cy_rtos_delay_milliseconds( 1000 );
+#if !NO_SYS
+        cy_rtos_delay_milliseconds( CY_ETHERNET_LINK_STATUS_POLL_INTERVAL_MS );
+#else
+        sys_timeout(CY_ETHERNET_LINK_STATUS_POLL_INTERVAL_MS, ethernetif_link_status, NULL);
+#endif
     }
 
 }
@@ -398,71 +419,42 @@ static void low_level_init(struct netif *netif)
     UNUSED_PARAMETER(netif);
 
     XMC_ETH_MAC_PORT_CTRL_t port_control;
-    XMC_GPIO_CONFIG_t gpio_config;
-    gpio_config.output_level = XMC_GPIO_OUTPUT_LEVEL_LOW;
-    gpio_config.mode = XMC_GPIO_MODE_INPUT_TRISTATE;
 
-    XMC_GPIO_Init(ETH_LWIP_0_CRS_DV, &gpio_config);
-
-    gpio_config.mode = XMC_GPIO_MODE_INPUT_TRISTATE;
-
-    XMC_GPIO_Init(ETH_LWIP_0_RXER, &gpio_config);
-
-    gpio_config.mode = XMC_GPIO_MODE_INPUT_TRISTATE;
-
-    XMC_GPIO_Init(ETH_LWIP_0_RXD0, &gpio_config);
-
-    gpio_config.mode = XMC_GPIO_MODE_INPUT_TRISTATE;
-
-    XMC_GPIO_Init(ETH_LWIP_0_RXD1, &gpio_config);
-
-    gpio_config.output_strength = XMC_GPIO_OUTPUT_STRENGTH_STRONG_SHARP_EDGE;
-    gpio_config.mode = XMC_GPIO_MODE_OUTPUT_PUSH_PULL_ALT1;
-
-    XMC_GPIO_Init(ETH_LWIP_0_TXEN, &gpio_config);
-
-    gpio_config.output_strength = XMC_GPIO_OUTPUT_STRENGTH_STRONG_SHARP_EDGE;
-    gpio_config.mode = XMC_GPIO_MODE_OUTPUT_PUSH_PULL_ALT1;
-
-    XMC_GPIO_Init(ETH_LWIP_0_TXD0, &gpio_config);
-
-    gpio_config.output_strength = XMC_GPIO_OUTPUT_STRENGTH_STRONG_SHARP_EDGE;
-    gpio_config.mode = XMC_GPIO_MODE_OUTPUT_PUSH_PULL_ALT1;
-
-    XMC_GPIO_Init(ETH_LWIP_0_TXD1, &gpio_config);
-
-    gpio_config.mode = XMC_GPIO_MODE_INPUT_TRISTATE;
-
-    XMC_GPIO_Init(ETH_LWIP_0_RMII_CLK, &gpio_config);
-
-    gpio_config.output_strength = XMC_GPIO_OUTPUT_STRENGTH_STRONG_SHARP_EDGE;
-    gpio_config.mode = XMC_GPIO_MODE_OUTPUT_PUSH_PULL_ALT1;
-
-    XMC_GPIO_Init(ETH_LWIP_0_MDC, &gpio_config);
-
-    gpio_config.mode = XMC_GPIO_MODE_INPUT_TRISTATE;
-
-    XMC_GPIO_Init(ETH_LWIP_0_MDIO, &gpio_config);
-
-
-    XMC_GPIO_SetHardwareControl(ETH_LWIP_0_MDIO, XMC_GPIO_HWCTRL_PERIPHERAL1);
-
-
+#if (defined(eth_0_mux_0_PHY_INTERCONNECT) && (eth_0_mux_0_PHY_INTERCONNECT == XMC_ETH_LINK_INTERFACE_MII))
+    port_control.mode = XMC_ETH_MAC_PORT_CTRL_MODE_MII;
+    port_control.rxd2 = ETH0_MII_RXD2;
+    port_control.rxd3 = ETH0_MII_RXD3;
+    port_control.clk_rmii = ETH0_MII_CLKRX;
+    port_control.crs_dv = ETH0_MII_RXDV;
+    port_control.crs = ETH0_MII_CRS;
+    port_control.col = ETH0_MII_COL;
+    port_control.clk_tx = ETH0_MII_CLK_TX;
+#else
     port_control.mode = XMC_ETH_MAC_PORT_CTRL_MODE_RMII;
-    port_control.rxd0 = (XMC_ETH_MAC_PORT_CTRL_RXD0_t)0U;
-    port_control.rxd1 = (XMC_ETH_MAC_PORT_CTRL_RXD1_t)0U;
-    port_control.clk_rmii = (XMC_ETH_MAC_PORT_CTRL_CLK_RMII_t)2U;
-    port_control.crs_dv = (XMC_ETH_MAC_PORT_CTRL_CRS_DV_t)2U;
-    port_control.rxer = (XMC_ETH_MAC_PORT_CTRL_RXER_t)0U;
-    port_control.mdio = (XMC_ETH_MAC_PORT_CTRL_MDIO_t)1U;
+    port_control.clk_rmii = ETH0_RMII_CLK_RMII;
+    port_control.crs_dv = ETH0_RMII_CRS_DV;
+#endif
+    port_control.rxd0 = ETH0_PHY_RXD0;
+    port_control.rxd1 = ETH0_PHY_RXD1;
+    port_control.rxer = ETH0_PHY_RX_ERR;
+    port_control.mdio = ETH0_SMA_MDI;
     XMC_ETH_MAC_SetPortControl(&eth_mac, port_control);
-
 
     (void)XMC_ETH_MAC_Init(&eth_mac);
 
     XMC_ETH_MAC_DisableJumboFrame(&eth_mac);
 
+#if (defined(eth_0_mux_0_BROADCAST_EN) && (eth_0_mux_0_BROADCAST_EN == 1u))
     XMC_ETH_MAC_EnableReceptionBroadcastFrames(&eth_mac);
+#else
+    XMC_ETH_MAC_DisableReceptionBroadcastFrames(&eth_mac);
+#endif
+
+#if (defined(eth_0_mux_0_PROMISCUOUS_EN) && (eth_0_mux_0_PROMISCUOUS_EN == 1u))
+    XMC_ETH_MAC_EnablePromiscuousMode(&eth_mac);
+#else
+    XMC_ETH_MAC_DisablePromiscuousMode(&eth_mac);
+#endif
 }
 #endif
 
@@ -746,7 +738,7 @@ void cy_tx_complete_cb ( ETH_Type *pstcEth, uint8_t u8QueueIndex )
 {
     (void)pstcEth;
     (void)u8QueueIndex;
-    
+
     /* Push the tx event into the worker queue */
     if((cy_worker_thread_enqueue(&cy_tx_worker_thread, tx_event_handler, NULL)) != CY_RSLT_SUCCESS)
     {
@@ -758,7 +750,7 @@ void cy_tx_failure_cb ( ETH_Type *pstcEth, uint8_t u8QueueIndex )
 {
     (void)pstcEth;
     (void)u8QueueIndex;
-    
+
     /* Push the tx event into the worker queue */
     if((cy_worker_thread_enqueue(&cy_tx_worker_thread, tx_event_handler, NULL)) != CY_RSLT_SUCCESS)
     {
@@ -785,7 +777,10 @@ void cy_tx_failure_cb ( ETH_Type *pstcEth, uint8_t u8QueueIndex )
 static err_t ethif_output(struct netif *netif, struct pbuf *p)
 {
     struct pbuf *q;
+
+#if !NO_SYS
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s(): START \n", __FUNCTION__ );
+#endif
 
 #ifdef COMPONENT_CAT3
     XMC_UNUSED_ARG(netif);
@@ -839,10 +834,10 @@ static err_t ethif_output(struct netif *netif, struct pbuf *p)
     cy_en_ethif_status_t eth_status;
     uint32_t framelen=0;
     cy_rslt_t result;
-    
+
     if_ctx = (cy_network_interface_context *)netif->state;
 
-    if (p->tot_len > (u16_t)CY_ETH_SIZE_MAX_FRAME) 
+    if (p->tot_len > (u16_t)CY_ETH_SIZE_MAX_FRAME)
     {
       return ERR_BUF;
     }
@@ -1024,15 +1019,22 @@ static void ethernetif_input(void *arg)
     struct eth_hdr *ethhdr;
     struct netif *netif = (struct netif *)arg;
 
+#if !NO_SYS
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s():%d netif:[%p]\n", __func__, __LINE__, netif);
+#endif
 
+#if !NO_SYS
     while(1)
+#endif
     {
+#if !NO_SYS
+#if (defined(eth_0_mux_0_RXD_POLLING_EN) && (eth_0_mux_0_RXD_POLLING_EN == 0u))
         cy_rtos_get_semaphore( &rx_semaphore, CY_RTOS_NEVER_TIMEOUT, false );
 
         /* Receive data from RX descriptor, post data to queue, enable IRQ. */
         NVIC_DisableIRQ((IRQn_Type)108);
-
+#endif
+#endif
         p = low_level_input();
 
         while (p != NULL)
@@ -1057,9 +1059,14 @@ static void ethernetif_input(void *arg)
 
             p = low_level_input();
         }
-
+#if !NO_SYS
+#if (defined(eth_0_mux_0_RXD_POLLING_EN) && (eth_0_mux_0_RXD_POLLING_EN == 1u))
+        cy_rtos_delay_milliseconds( eth_0_mux_0_RXD_POLLING_INTERVAL );
+#else
         NVIC_ClearPendingIRQ((IRQn_Type)108);
         NVIC_EnableIRQ((IRQn_Type)108);
+#endif
+#endif
 
     }
 
@@ -1096,7 +1103,16 @@ err_t ethernetif_init(struct netif* netif)
     /* Set the MAC hardware address to the interface.*/
     for(int i=0; i<ETH_HWADDR_LEN; i++)
     {
+#ifdef COMPONENT_CAT3
+        netif->hwaddr[0] =  (u8_t)eth_0_mux_0_MAC_ADDR0;
+        netif->hwaddr[1] =  (u8_t)eth_0_mux_0_MAC_ADDR1;
+        netif->hwaddr[2] =  (u8_t)eth_0_mux_0_MAC_ADDR2;
+        netif->hwaddr[3] =  (u8_t)eth_0_mux_0_MAC_ADDR3;
+        netif->hwaddr[4] =  (u8_t)eth_0_mux_0_MAC_ADDR4;
+        netif->hwaddr[5] =  (u8_t)eth_0_mux_0_MAC_ADDR5;
+#else
         netif->hwaddr[i] =  (u8_t)if_ctx->mac_address[i];
+#endif
         cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_INFO, "netif->hwaddr[%d]:[0x%x] \n", i, netif->hwaddr[i]);
     }
 
@@ -1161,7 +1177,9 @@ err_t ethernetif_init(struct netif* netif)
 #endif
 
 #ifdef COMPONENT_CAT3
+#if !NO_SYS
     cy_rslt_t result = CY_RSLT_SUCCESS;
+#endif
     ETH_LWIP_t *eth_lwip = if_ctx->hw_interface;
 
     /* Copy the netif address, which will be used for other netif operations */
@@ -1171,6 +1189,7 @@ err_t ethernetif_init(struct netif* netif)
     /* initialize the hardware */
     low_level_init(netif);
 
+#if !NO_SYS
     result = cy_rtos_init_semaphore( &rx_semaphore, 1, 0);
     if( result != CY_RSLT_SUCCESS )
     {
@@ -1187,11 +1206,13 @@ err_t ethernetif_init(struct netif* netif)
         cy_rtos_deinit_semaphore( &rx_semaphore);
         return ERR_IF;
     }
+#endif
 
 #if LWIP_NETIF_LINK_CALLBACK == 1
     netif_set_link_callback(netif, ethernetif_link_callback);
 #endif
 
+#if !NO_SYS
     /*Create a thread to keep track of PHY link status */
     result = cy_rtos_create_thread( &link_status_thread, ethernetif_link_status, "phy_link_status_thread", NULL,
                                     RX_STATUS_THREAD_STACK_SIZE, RX_STATUS_THREAD_PRIORITY, netif );
@@ -1206,6 +1227,9 @@ err_t ethernetif_init(struct netif* netif)
         cy_rtos_deinit_semaphore( &rx_semaphore);
         return ERR_IF;
     }
+#else
+    ethernetif_link_status(NULL);
+#endif
 
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "initialized:%d\n", eth_lwip->initialized );
 
@@ -1223,19 +1247,24 @@ __WEAK void ETH_LWIP_UserIRQ(void)
 {
 }
 
+#if (defined(eth_0_mux_0_RXD_POLLING_EN) && (eth_0_mux_0_RXD_POLLING_EN == 0u))
 void IRQ_Hdlr_108(void)
 {
     XMC_ETH_MAC_ClearEventStatus(&eth_mac, XMC_ETH_MAC_EVENT_RECEIVE);
+#if !NO_SYS
     cy_rtos_set_semaphore( &rx_semaphore, 1 );
+#else
+    ethernetif_input(xnetif);
+#endif
 
     ETH_LWIP_UserIRQ();
 }
-
+#else
 void ETH_LWIP_Poll(void)
 {
-    cy_rtos_set_semaphore( &rx_semaphore, 1 );
+    ethernetif_input(xnetif);
 }
-
+#endif
 #endif
 #endif
 

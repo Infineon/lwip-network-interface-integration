@@ -96,11 +96,38 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>UNUSED_VARIABLE</b>(x)&#160;&#160;&#160;( (void)(x) )</td></tr>
 <tr class="memdesc:ga4048bf3892868ded8a28f8cbdd339c09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Suppress unused variable warning. <br /></td></tr>
 <tr class="separator:ga4048bf3892868ded8a28f8cbdd339c09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa54e6e5e8fc59bfc8a004e439eb28fb1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__group__lwip__network__interface__integration__macros.html#gaa54e6e5e8fc59bfc8a004e439eb28fb1">PROTECTED_FUNC_CALL</a>(func)</td></tr>
+<tr class="memdesc:gaa54e6e5e8fc59bfc8a004e439eb28fb1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Protect the function call by acquiring LwIP Core lock.  <a href="group__group__lwip__network__interface__integration__macros.html#gaa54e6e5e8fc59bfc8a004e439eb28fb1">More...</a><br /></td></tr>
+<tr class="separator:gaa54e6e5e8fc59bfc8a004e439eb28fb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9d8892d96c10fc1abbb8f0797f816feb"><td class="memItemLeft" align="right" valign="top"><a id="ga9d8892d96c10fc1abbb8f0797f816feb" name="ga9d8892d96c10fc1abbb8f0797f816feb"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>CY_MAC_ADDR_LEN</b>&#160;&#160;&#160;(6U)</td></tr>
 <tr class="memdesc:ga9d8892d96c10fc1abbb8f0797f816feb"><td class="mdescLeft">&#160;</td><td class="mdescRight">MAC address length. <br /></td></tr>
 <tr class="separator:ga9d8892d96c10fc1abbb8f0797f816feb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="gaa54e6e5e8fc59bfc8a004e439eb28fb1" name="gaa54e6e5e8fc59bfc8a004e439eb28fb1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa54e6e5e8fc59bfc8a004e439eb28fb1">&#9670;&nbsp;</a></span>PROTECTED_FUNC_CALL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTECTED_FUNC_CALL</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">func</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">LOCK_TCPIP_CORE(); \</div>
+<div class="line">func; \</div>
+<div class="line">UNLOCK_TCPIP_CORE();</div>
+</div><!-- fragment -->
+<p>Protect the function call by acquiring LwIP Core lock. </p>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

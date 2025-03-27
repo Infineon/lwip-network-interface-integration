@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -36,6 +36,8 @@
  */
 
 #pragma once
+
+#if (LWIP_NETCONN || LWIP_SOCKET)
 
 #if LWIP_IPV4
 
@@ -171,3 +173,5 @@ cy_rslt_t cy_lwip_dhcp_server_stop(cy_lwip_dhcp_server_t *server);
 #endif
 
 #endif //LWIP_IPV4
+
+#endif /* LWIP_NETCONN || LWIP_SOCKET */

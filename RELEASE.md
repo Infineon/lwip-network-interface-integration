@@ -6,6 +6,11 @@ See the [README.md](./README.md) for a complete description of the [lwIP network
 
 ## Changelog
 
+### v1.6.0
+
+- Added support for Rx polling method for XMC4700/XMC4800 devices.
+- Changes to support PHY, DHCP or static IP and LwIP configurations based on device configurator settings
+
 ### v1.5.0
 
 - Added support for D-cache enablement on XMC7000 devices
@@ -61,8 +66,8 @@ This version of the library was validated for compatibility with the following s
 
 | Software and tools                                           | Version |
 | :---                                                         | :----:  |
-| ModusToolbox&trade; software environment                     | 3.3     |
-| ModusToolbox&trade; Device Configurator                      | 5.10    |
+| ModusToolbox&trade; software environment                     | 3.4     |
+| ModusToolbox&trade; Device Configurator                      | 5.20    |
 | GCC compiler                                                 | 11.3.1  |
 | IAR compiler                                                 | 9.50.2  |
 | Arm&reg; compiler 6                                          | 6.22    |

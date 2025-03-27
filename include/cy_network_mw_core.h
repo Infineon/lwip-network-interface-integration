@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -65,6 +65,19 @@ extern "C" {
  */
 #ifndef UNUSED_VARIABLE
 #define UNUSED_VARIABLE(x) ( (void)(x) )
+#endif
+
+/**
+ * Protect the function call by acquiring LwIP Core lock.
+ */
+#if !NO_SYS
+#define PROTECTED_FUNC_CALL(func) \
+LOCK_TCPIP_CORE(); \
+func; \
+UNLOCK_TCPIP_CORE();
+#else
+#define PROTECTED_FUNC_CALL(func) \
+func;
 #endif
 
 #define CY_MAC_ADDR_LEN                        (6U)         /**< MAC address length */

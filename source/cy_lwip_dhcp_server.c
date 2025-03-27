@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -38,7 +38,13 @@
 #include "lwip/err.h"
 #include "lwip/api.h"
 #include "lwip/netif.h"
+#if !NO_SYS
 #include "lwip/netifapi.h"
+#else
+#include "lwip/ip.h"
+#endif
+
+#if LWIP_NETCONN || LWIP_SOCKET
 
 #if LWIP_IPV4
 
@@ -962,7 +968,7 @@ static cy_rslt_t internal_udp_send(struct netconn* handler, cy_lwip_packet_t* pa
     cy_network_activity_notify(CY_NETWORK_ACTIVITY_TX);
 
     /* Bind the interface to the socket */
-    udp_bind_netif(handler->pcb.udp, cy_network_get_nw_interface(type, index));
+    PROTECTED_FUNC_CALL(udp_bind_netif(handler->pcb.udp, cy_network_get_nw_interface(type, index)));
 
     /* Send a packet */
     packet->p->len = packet->p->tot_len;
@@ -1009,3 +1015,6 @@ static cy_rslt_t internal_packet_create( cy_lwip_packet_t** packet, uint16_t con
     return CY_RSLT_NETWORK_DHCP_TIMEOUT;
 }
 #endif //LWIP_IPV4
+
+#endif // (LWIP_NETCONN || LWIP_SOCKET)
+

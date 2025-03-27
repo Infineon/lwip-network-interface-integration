@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -35,10 +35,20 @@
 #define LIBS_CONNECTIVITY_MANAGER_INTERNAL_HEADER_H_
 
 #if defined(CYBSP_ETHERNET_CAPABLE)
+#include "cycfg.h"
+
+#ifdef COMPONENT_CAT3
+#if (defined(eth_0_mux_0_STATIC_IP) && (eth_0_mux_0_STATIC_IP == 1u))
+#define eth_0_STATIC_IP eth_0_mux_0_STATIC_IP
+#define eth_0_GATEWAY_IP_ADDR eth_0_mux_0_GATEWAY_IP_ADDR
+#define eth_0_IP_ADDR eth_0_mux_0_IP_ADDR
+#define eth_0_SUBNET_MASK eth_0_mux_0_SUBNET_MASK
+#endif
+#endif
+
 #ifdef COMPONENT_CAT1
 #include "cy_ethif.h"
 #include "cy_ephy.h"
-#include "cycfg.h"
 
 /******************************************************
  *                      Macros

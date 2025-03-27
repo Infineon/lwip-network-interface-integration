@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -51,11 +51,16 @@
 #include "lwip/icmp.h"
 #include "lwip/inet.h"
 #include "lwip/netdb.h"
+#if NO_SYS
+#include "lwip/timeouts.h"
+#endif
+#include "lwip/autoip.h"
 
 #include "cy_lwip_dhcp_server.h"
 #include "cy_network_mw_core.h"
 #include "cy_result.h"
 #include "cy_lwip_log.h"
+#include "cy_lwip_internal.h"
 
 #if defined(CYBSP_WIFI_CAPABLE)
 #include "cybsp_wifi.h"
@@ -80,8 +85,10 @@
 #endif
 
 #ifdef COMPONENT_CAT1
+#if !NO_SYS
 #include "cyabs_rtos.h"
 #include "cy_worker_thread.h"
+#endif
 #endif
 
 #endif
@@ -156,6 +163,11 @@ int errno;
 #define CM_TX_WORKER_THREAD_STACK_SIZE                (4 * 1024)
 #define CM_TX_WORKER_THREAD_QUEUE_SIZE                (32)
 #endif
+
+#ifdef COMPONENT_CAT3
+#define MAX_WAIT_ETHERNET_LINK_UP                     (5000) /* After hardware initialization, max wait time to get the physical link up */
+#define WAIT_INTERVAL_CHECK_ETHERNET_LINK_UP          (100)  /* Interval to check the Ethernet PHY status in milliseconds. The driver takes ~1 second to update the register. */
+#endif
 #endif
 
 #if defined(COMPONENT_CAT1)
@@ -173,8 +185,10 @@ static cy_wifimwcore_eapol_packet_handler_t internal_eapol_packet_handler = NULL
 #endif
 static cy_network_ip_change_callback_t ip_change_callback = NULL;
 
+#if !NO_SYS
 #if LWIP_IPV4
 static cy_lwip_dhcp_server_t internal_dhcp_server;
+#endif
 #endif
 
 /* Interface init status */
@@ -248,6 +262,10 @@ static cy_mutex_t trng_mutex;
 extern err_t ethernetif_init(struct netif* netif);
 #endif
 
+#if (defined(eth_0_mux_0_RXD_POLLING_EN) && (eth_0_mux_0_RXD_POLLING_EN == 1u))
+extern void ETH_LWIP_Poll(void);
+#endif
+
 #if LWIP_IPV4
 static void invalidate_all_arp_entries(struct netif *netif);
 #endif
@@ -256,10 +274,12 @@ static bool is_interface_added(uint8_t interface_index);
 static cy_rslt_t is_interface_valid(cy_network_interface_context *iface);
 static bool is_network_up(uint8_t interface_index);
 
+#if !NO_SYS
 #if LWIP_IPV4
 static void ping_prepare_echo(struct icmp_packet *iecho, uint16_t len, uint16_t *ping_seq_num);
 static err_t ping_send(int socket_hnd, const cy_nw_ip_address_t* address, struct icmp_packet *iecho, uint16_t *sequence_number);
 static err_t ping_recv(int socket_hnd, cy_nw_ip_address_t* address, uint16_t *ping_seq_num);
+#endif
 #endif
 
 #ifdef COMPONENT_4390X
@@ -277,6 +297,65 @@ static int cy_trng_reserve( void );
 /******************************************************
  *               Function Definitions
  ******************************************************/
+#if NO_SYS
+
+#define FREQ_1MHZ               (1000000UL)
+
+#define SYS_TICKS_PER_SECOND    (1000)
+
+#define CY_LWIP_MAX_TIMEOUT     (0x7fffffff)
+
+/* Check if timer's expiry time is greater than time and care about u32_t wrap arounds */
+#define CY_TIME_LESS_THAN(t, compare_to) ( (((u32_t)((t)-(compare_to))) > CY_LWIP_MAX_TIMEOUT) ? 1 : 0 )
+
+static volatile uint32_t g_systick_count = 0U;
+
+static uint32_t sys_get_ticks(void)
+{
+    return (g_systick_count);
+}
+
+void SysTick_Handler(void)
+{
+    ++g_systick_count;
+}
+
+u32_t
+sys_now(void)
+{
+    return sys_get_ticks();
+}
+
+u32_t
+sys_jiffies(void)
+{
+    return sys_get_ticks();
+}
+
+static void cy_sys_delay_ms(uint32_t delayms)
+{
+    uint32_t now, end;
+
+    now   = sys_now();
+    end   = now + delayms;
+
+    while (CY_TIME_LESS_THAN(now, end))
+    {
+        __NOP();
+        sys_check_timeouts();
+        now = sys_now();
+    }
+}
+
+static void cy_sys_wait_for_input(uint32_t wait_time_ms)
+{
+#if (defined(eth_0_mux_0_RXD_POLLING_EN) && (eth_0_mux_0_RXD_POLLING_EN == 1u))
+    ETH_LWIP_Poll();
+#endif
+    cy_sys_delay_ms(wait_time_ms);
+}
+
+#endif
 
 #if defined(CYBSP_WIFI_CAPABLE)
 /*
@@ -291,6 +370,7 @@ void cy_network_process_ethernet_data(whd_interface_t iface, whd_buffer_t buf)
     uint8_t *data = whd_buffer_get_current_piece_data_pointer(iface->whd_driver, buf);
     uint16_t ethertype;
     struct netif *net_interface = NULL;
+    cy_network_interface_context *if_ctx;
 
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_INFO, "%s(): START iface->role:[%d]\n", __FUNCTION__, iface->role );
 
@@ -342,8 +422,11 @@ void cy_network_process_ethernet_data(whd_interface_t iface, whd_buffer_t buf)
         }
 
         cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Send data up to LwIP \n");
+
+        if_ctx = (cy_network_interface_context *)net_interface->state;
         /* If the interface is not yet set up, drop the packet */
-        if (net_interface->input == NULL || net_interface->input(buf, net_interface) != ERR_OK)
+        if (if_ctx == NULL || if_ctx->is_initialized == false ||
+                net_interface->input == NULL || net_interface->input(buf, net_interface) != ERR_OK)
         {
             cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_ERR, "Drop packet before lwip \n");
             cy_buffer_release(buf, WHD_NETWORK_RX) ;
@@ -588,7 +671,7 @@ static err_t wifiinit(struct netif *iface)
     /*
      * Create a link-local IPv6 address
      */
-    netif_create_ip6_linklocal_address(iface, 1);
+    PROTECTED_FUNC_CALL(netif_create_ip6_linklocal_address(iface, 1));
 
     /*
      * Tell the radio that you want to listen to solicited-node multicast
@@ -750,6 +833,7 @@ cy_rslt_t cy_network_init( void )
         return CY_RSLT_SUCCESS;
     }
 
+#if !NO_SYS
     /** Initialize TCP ip stack, LWIP init is called through tcpip_init **/
     if(!is_tcp_initialized)
     {
@@ -757,8 +841,19 @@ cy_rslt_t cy_network_init( void )
         tcpip_init(NULL, NULL);
         is_tcp_initialized = true;
     }
-
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\n tcpip_init success.\n");
+#else
+    if(!is_tcp_initialized)
+    {
+        /* Initialize Systimer */
+        SysTick_Config(SystemCoreClock / SYS_TICKS_PER_SECOND);
+
+        /*Network stack initialization*/
+        lwip_init();
+        is_tcp_initialized = true;
+    }
+    cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\n lwip_init success.\n");
+#endif
 
     /*Memory to store iface_context. Currently, 4 contexts*/
     for (int i = 0; i < CY_IFACE_MAX_HANDLE; i++)
@@ -1028,7 +1123,7 @@ cy_rslt_t cy_network_add_nw_interface(cy_network_hw_interface_type_t iface_type,
                 iface_context_database[index].iface_idx  = iface_idx;
 
                 iface_context_database[index].hw_interface = hw_interface;
-                cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG," Adding interface \n");
+                cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG,"Adding interface \n");
 
                 *iface_context = &(iface_context_database[index]);
                 break;
@@ -1086,10 +1181,13 @@ cy_rslt_t cy_network_add_nw_interface(cy_network_hw_interface_type_t iface_type,
         memcpy(&ipaddr, &ip_addr, sizeof(ipaddr));
         memcpy(&netmask, &subnet_mk, sizeof(netmask));
 #else
-        /* Static IP from device configurator disabled. Configure DHCP to network stack */
-        memset(&gateway, 0, sizeof(gateway));
-        memset(&ipaddr, 0, sizeof(ipaddr));
-        memset(&netmask, 0, sizeof(netmask));
+        if(static_ipaddr == NULL)
+        {
+            /* Static IP from device configurator disabled. Configure DHCP to network stack */
+            memset(&gateway, 0, sizeof(gateway));
+            memset(&ipaddr, 0, sizeof(ipaddr));
+            memset(&netmask, 0, sizeof(netmask));
+        }
 #endif
     }
     else
@@ -1104,10 +1202,13 @@ cy_rslt_t cy_network_add_nw_interface(cy_network_hw_interface_type_t iface_type,
         memcpy(&ipaddr, &ip_addr, sizeof(ipaddr));
         memcpy(&netmask, &subnet_mk, sizeof(netmask));
 #else
-        /* Static IP from device configurator disabled. Configure DHCP to network stack */
-        memset(&gateway, 0, sizeof(gateway));
-        memset(&ipaddr, 0, sizeof(ipaddr));
-        memset(&netmask, 0, sizeof(netmask));
+        if(static_ipaddr == NULL)
+        {
+            /* Static IP from device configurator disabled. Configure DHCP to network stack */
+            memset(&gateway, 0, sizeof(gateway));
+            memset(&ipaddr, 0, sizeof(ipaddr));
+            memset(&netmask, 0, sizeof(netmask));
+        }
 #endif
 #endif
     }
@@ -1124,13 +1225,21 @@ cy_rslt_t cy_network_add_nw_interface(cy_network_hw_interface_type_t iface_type,
         cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG,"iface_context_database[index].hw_interface:[%p] hw_interface:[%p]\n", iface_context_database[index].hw_interface, hw_interface);
 #if LWIP_IPV4
         /* Add the interface to the lwIP stack and make it the default */
-        if(netifapi_netif_add(iface_context_database[index].nw_interface, &ipaddr, &netmask, &gateway, &iface_context_database[index], wifiinit, tcpip_input) != CY_RSLT_SUCCESS)
+#if !NO_SYS
+        if(netifapi_netif_add(iface_context_database[index].nw_interface, &ipaddr, &netmask, &gateway, &iface_context_database[index], wifiinit, tcpip_input) != ERR_OK)
+#else
+        if(!netif_add(iface_context_database[index].nw_interface, &ipaddr, &netmask, &gateway, &iface_context_database[index], wifiinit, tcpip_input))
+#endif
         {
             cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_ERR, "Error adding interface \n");
             return CY_RSLT_NETWORK_ERROR_ADDING_INTERFACE;
         }
 #else
-        if(netifapi_netif_add(iface_context_database[index].nw_interface, &iface_context_database[index], wifiinit, tcpip_input) != CY_RSLT_SUCCESS)
+#if !NO_SYS
+        if(netifapi_netif_add(iface_context_database[index].nw_interface, &iface_context_database[index], wifiinit, tcpip_input) != ERR_OK)
+#else
+        if(!netif_add(iface_context_database[index].nw_interface, &iface_context_database[index], wifiinit, tcpip_input))
+#endif
         {
             cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_ERR, "Error adding interface \n");
             return CY_RSLT_NETWORK_ERROR_ADDING_INTERFACE;
@@ -1144,7 +1253,7 @@ cy_rslt_t cy_network_add_nw_interface(cy_network_hw_interface_type_t iface_type,
         {
             is_dhcp_client_required = true;
         }
-        netifapi_netif_set_default(iface_context_database[index].nw_interface);
+        CY_LWIP_NETIF_API_VOID_RET(netif_set_default(iface_context_database[index].nw_interface));
     }
 
 #if LWIP_NETIF_STATUS_CALLBACK == 1
@@ -1153,7 +1262,7 @@ cy_rslt_t cy_network_add_nw_interface(cy_network_hw_interface_type_t iface_type,
      * Note: The "status" callback will also be called when the interface
      * goes up or down.
      */
-    netif_set_status_callback(iface_context_database[index].nw_interface, internal_ip_change_callback);
+    PROTECTED_FUNC_CALL(netif_set_status_callback(iface_context_database[index].nw_interface, internal_ip_change_callback));
 #endif /* LWIP_NETIF_STATUS_CALLBACK */
 
     SET_IP_NETWORK_INITED(iface_context_database[index].iface_type, true);
@@ -1171,30 +1280,38 @@ cy_rslt_t cy_network_add_nw_interface(cy_network_hw_interface_type_t iface_type,
 
 #if LWIP_IPV4
         cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Add interface : [%p]for the netif assigned\n", iface_context_database[index].nw_interface);
-
         /* Add network interface to the netif_list */
-        if(netifapi_netif_add(iface_context_database[index].nw_interface, &ipaddr, &netmask, &gateway, &iface_context_database[index], &ethernetif_init, &tcpip_input) != CY_RSLT_SUCCESS)
-        {
-            cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_ERR, "Error adding interface \n");
-            return CY_RSLT_NETWORK_ERROR_ADDING_INTERFACE;
-        }
+#if !NO_SYS
+        if(netifapi_netif_add(iface_context_database[index].nw_interface, &ipaddr, &netmask, &gateway, &iface_context_database[index], &ethernetif_init, &tcpip_input) != ERR_OK)
 #else
-        if(netifapi_netif_add(iface_context_database[index].nw_interface, &iface_context_database[index], &ethernetif_init, &tcpip_input) != CY_RSLT_SUCCESS)
+        if(!netif_add(iface_context_database[index].nw_interface, &ipaddr, &netmask, &gateway, &iface_context_database[index], &ethernetif_init, &ethernet_input))
+#endif
         {
             cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_ERR, "Error adding interface \n");
             return CY_RSLT_NETWORK_ERROR_ADDING_INTERFACE;
         }
+#else //LWIP_IPV4
+#if !NO_SYS
+        if(netifapi_netif_add(iface_context_database[index].nw_interface, &iface_context_database[index], &ethernetif_init, &tcpip_input) != ERR_OK)
+#else
+        if(!netif_add(iface_context_database[index].nw_interface, &iface_context_database[index], &ethernetif_init, &ethernet_input))
 #endif
+        {
+            cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_ERR, "Error adding interface \n");
+            return CY_RSLT_NETWORK_ERROR_ADDING_INTERFACE;
+        }
+#endif //LWIP_IPV4
         cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG,"iface_context_database[index].nw_interface:[%p]\n", iface_context_database[index].nw_interface);
 
         /*  Register the default network interface.*/
-        netifapi_netif_set_default(iface_context_database[index].nw_interface);
+        CY_LWIP_NETIF_API_VOID_RET(netif_set_default(iface_context_database[index].nw_interface));
+
         cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG,"Set default Interface:[%p]\n", LWIP_IP_HANDLE(iface_context_database[index].iface_type + iface_context_database[index].iface_idx));
 
         /* If callback enabled */
 #if LWIP_NETIF_STATUS_CALLBACK == 1
         /* Initialize the interface status change callback */
-        netif_set_status_callback(iface_context_database[index].nw_interface, internal_ip_change_callback);
+        PROTECTED_FUNC_CALL(netif_set_status_callback(iface_context_database[index].nw_interface, internal_ip_change_callback));
 #endif
         SET_IP_NETWORK_INITED((iface_context_database[index].iface_type + iface_context_database[index].iface_idx), true);
     }
@@ -1207,8 +1324,15 @@ cy_rslt_t cy_network_add_nw_interface(cy_network_hw_interface_type_t iface_type,
         is_dhcp_client_required = false;
         cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG,"Static IP configured. Do not enable DHCP client\n");
 #else
-        is_dhcp_client_required = true;
-        cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG,"DHCP configured. Enable DHCP client\n");
+        if(static_ipaddr == NULL)
+        {
+            is_dhcp_client_required = true;
+            cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG,"DHCP configured. Enable DHCP client\n");
+        }
+        else
+        {
+            is_dhcp_client_required = false;
+        }
 #endif
     }
 
@@ -1287,9 +1411,11 @@ cy_rslt_t cy_network_remove_nw_interface(cy_network_interface_context *iface_con
     }
 
     /* Remove the status callback */
-    netif_set_remove_callback(LWIP_IP_HANDLE(interface_index), internal_ip_change_callback);
+    PROTECTED_FUNC_CALL(netif_set_remove_callback(LWIP_IP_HANDLE(interface_index), internal_ip_change_callback));
+
     /* Remove the interface */
-    netifapi_netif_remove(LWIP_IP_HANDLE(interface_index));
+    CY_LWIP_NETIF_API_VOID_RET(netif_remove(LWIP_IP_HANDLE(interface_index)));
+
     if(iface_context->iface_type == CY_NETWORK_WIFI_STA_INTERFACE || iface_context->iface_type == CY_NETWORK_ETH_INTERFACE)
     {
         is_dhcp_client_required = false;
@@ -1352,7 +1478,27 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
     cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "interface_index:[%d] \n", interface_index);
 
 #ifdef COMPONENT_CAT3
-    if(!netif_is_up(LWIP_IP_HANDLE(interface_index)))
+    uint32_t total_wait_time = 0;
+
+    while( total_wait_time < MAX_WAIT_ETHERNET_LINK_UP )
+    {
+        if(!netif_is_up(LWIP_IP_HANDLE(interface_index)))
+        {
+#if !NO_SYS
+            cy_rtos_delay_milliseconds(WAIT_INTERVAL_CHECK_ETHERNET_LINK_UP);
+#else
+            cy_sys_wait_for_input(WAIT_INTERVAL_CHECK_ETHERNET_LINK_UP);
+#endif
+            total_wait_time += WAIT_INTERVAL_CHECK_ETHERNET_LINK_UP;
+
+            continue;
+        }
+        else
+        {
+            break;
+        }
+    }
+    if( total_wait_time >= MAX_WAIT_ETHERNET_LINK_UP )
     {
         cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_ERR, "Link is not up \n");
         return CY_RSLT_NETWORK_LINK_NOT_UP;
@@ -1377,19 +1523,24 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
     /*
     * Bring up the network interface
     */
-    netifapi_netif_set_up((LWIP_IP_HANDLE(interface_index)));
+    CY_LWIP_NETIF_API_VOID_RET(netif_set_up((LWIP_IP_HANDLE(interface_index))));
 
     /*
     * Bring up the network link layer
     */
-    netifapi_netif_set_link_up((LWIP_IP_HANDLE(interface_index)));
+    CY_LWIP_NETIF_API_VOID_RET(netif_set_link_up((LWIP_IP_HANDLE(interface_index))));
 
 #if LWIP_IPV6
     /* Wait for the IPv6 address to change from tentative to valid or invalid */
     while(ip6_addr_istentative(netif_ip6_addr_state(LWIP_IP_HANDLE(interface_index), 0)))
     {
+#if !NO_SYS
         /* Give the lwIP stack time to change the state */
         cy_rtos_delay_milliseconds(ND6_TMR_INTERVAL);
+#else
+        cy_sys_wait_for_input(ND6_TMR_INTERVAL);
+#endif
+
     }
 
     /* lwIP changes state to either INVALID or VALID. Check if the state is VALID */
@@ -1427,7 +1578,7 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
                 activity_callback(true);
             }
 
-            netif_set_ipaddr(LWIP_IP_HANDLE(interface_index), &ip_addr);
+            PROTECTED_FUNC_CALL(netif_set_ipaddr(LWIP_IP_HANDLE(interface_index), &ip_addr));
 
             /*
              * If LPA is enabled, invoke the activity callback to resume the network stack
@@ -1441,17 +1592,23 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
             /* TO DO : DHCPv6 need to be handled when we support IPV6 addresses other than the link local address */
             /* Start DHCP */
             cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Start DHCP client netif:[%p]\n", LWIP_IP_HANDLE(interface_index) );
-            if(netifapi_dhcp_start(LWIP_IP_HANDLE(interface_index)) != CY_RSLT_SUCCESS)
+
+            if(CY_LWIP_NETIF_API_VOID_RET(dhcp_start(LWIP_IP_HANDLE(interface_index))) != CY_RSLT_SUCCESS)
             {
                 cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_ERR, "CY_RSLT_NETWORK_ERROR_STARTING_DHCP error\n");
                 return CY_RSLT_NETWORK_ERROR_STARTING_DHCP;
             }
             /* Wait a little to allow DHCP to complete */
-
             while((netif_dhcp_data(LWIP_IP_HANDLE(interface_index))->state != DHCP_STATE_BOUND) && (timeout_occurred == false))
             {
+#if !NO_SYS
                 cy_rtos_delay_milliseconds(10);
+#else
+                cy_sys_wait_for_input(10);
+#endif
+
                 address_resolution_timeout += 10;
+
                 if(address_resolution_timeout >= DHCP_IP_ADDRESS_RESOLUTION_TIMEOUT_IN_MS)
                 {
                     /* Timeout has occurred */
@@ -1470,9 +1627,11 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
                 {
                     activity_callback(true);
                 }
-                netifapi_dhcp_release_and_stop(LWIP_IP_HANDLE(interface_index));
-                cy_rtos_delay_milliseconds(DHCP_STOP_DELAY_IN_MS);
 
+                CY_LWIP_NETIF_API_VOID_RET(dhcp_release_and_stop(LWIP_IP_HANDLE(interface_index)));
+#if !NO_SYS
+                cy_rtos_delay_milliseconds(DHCP_STOP_DELAY_IN_MS);
+#endif
                 /*
                 * If LPA is enabled, invoke the activity callback to resume the network stack
                 * before invoking the lwIP APIs that require the TCP core lock.
@@ -1486,6 +1645,7 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
 #if LWIP_AUTOIP
                 int   tries = 0;
                 cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_INFO, "Unable to obtain IP address via DHCP. Perform Auto IP\n");
+
                 address_resolution_timeout = 0;
                 timeout_occurred            = false;
 
@@ -1506,7 +1666,11 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
 
                 while ((timeout_occurred == false) && ((netif_autoip_data(LWIP_IP_HANDLE(interface_index))->state != AUTOIP_STATE_BOUND)))
                 {
+#if !NO_SYS
                     cy_rtos_delay_milliseconds(10);
+#else
+                    cy_sys_wait_for_input(10);
+#endif
                     address_resolution_timeout += 10;
                     if(address_resolution_timeout >= AUTO_IP_ADDRESS_RESOLUTION_TIMEOUT_IN_MS)
                     {
@@ -1518,7 +1682,7 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
                         {
                             timeout_occurred = true;
                         }
-                     }
+                    }
                 }
 
                 if (timeout_occurred)
@@ -1550,16 +1714,30 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
     }
     else
     {
-        memset(&internal_dhcp_server, 0, sizeof(internal_dhcp_server));
 #if LWIP_IGMP
         igmp_start(LWIP_IP_HANDLE(interface_index));
 #endif
+
+#if !NO_SYS
+        memset(&internal_dhcp_server, 0, sizeof(internal_dhcp_server));
         /* Start the internal DHCP server */
         if((result = cy_lwip_dhcp_server_start(&internal_dhcp_server, iface))!= CY_RSLT_SUCCESS)
         {
             cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_ERR, "Unable to obtain IP address via DHCP\n");
             return CY_RSLT_NETWORK_ERROR_STARTING_DHCP;
         }
+#else
+
+        if((result = dhcp_start((LWIP_IP_HANDLE(interface_index))))!= CY_RSLT_SUCCESS)
+        {
+            cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_ERR, "Unable to obtain IP address via DHCP\n");
+            return CY_RSLT_NETWORK_ERROR_STARTING_DHCP;
+        }
+        else
+        {
+            cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_INFO, "\nObtained IP address via DHCP...\n\n");
+        }
+#endif
     }
 #endif
 
@@ -1618,9 +1796,10 @@ cy_rslt_t cy_network_ip_down(cy_network_interface_context *iface)
                 activity_callback(true);
             }
 
-            netifapi_dhcp_release_and_stop(LWIP_IP_HANDLE(interface_index));
+            CY_LWIP_NETIF_API_VOID_RET(dhcp_release_and_stop(LWIP_IP_HANDLE(interface_index)));
+#if !NO_SYS
             cy_rtos_delay_milliseconds(DHCP_STOP_DELAY_IN_MS);
-
+#endif
             /*
              * If LPA is enabled, invoke the activity callback to resume the network stack
              * before invoking the lwIP APIs that require the TCP core lock.
@@ -1636,10 +1815,11 @@ cy_rslt_t cy_network_ip_down(cy_network_interface_context *iface)
 
     if(iface->iface_type == CY_NETWORK_WIFI_AP_INTERFACE)
     {
-
+#if !NO_SYS
         cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Stop DHCP for SoftAP interface \n" );
         /* Stop the internal DHCP server for the SoftAP interface */
         cy_lwip_dhcp_server_stop(&internal_dhcp_server);
+#endif
     }
 #endif
 
@@ -1655,12 +1835,11 @@ cy_rslt_t cy_network_ip_down(cy_network_interface_context *iface)
     /*
     * Bring down the network link layer
     */
-    netifapi_netif_set_link_down(LWIP_IP_HANDLE(interface_index));
-
+    CY_LWIP_NETIF_API_VOID_RET(netif_set_link_down(LWIP_IP_HANDLE(interface_index)));
     /*
     * Bring down the network interface
     */
-    netifapi_netif_set_down(LWIP_IP_HANDLE(interface_index));
+    CY_LWIP_NETIF_API_VOID_RET(netif_set_down(LWIP_IP_HANDLE(interface_index)));
 
     /* TO DO : clear all ARP cache */
 
@@ -1900,10 +2079,14 @@ cy_rslt_t cy_network_get_gateway_mac_address(cy_network_interface_context *iface
             arp_index = etharp_find_addr(net_interface, (const ip4_addr_t *) &ipv4addr, &eth_ret, (const ip4_addr_t **) &ip_ret);
             if(arp_index != -1)
             {
-                 cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_INFO, "arp entry found \r\n");
-                 break;
+                    cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_INFO, "arp entry found \r\n");
+                    break;
             }
+    #if !NO_SYS
             cy_rtos_delay_milliseconds(ARP_CACHE_CHECK_INTERVAL_IN_MSEC);
+    #else
+            cy_sys_wait_for_input(ARP_CACHE_CHECK_INTERVAL_IN_MSEC);
+    #endif
             arp_waittime -= ARP_CACHE_CHECK_INTERVAL_IN_MSEC;
             if(arp_waittime <= 0)
             {
@@ -1911,7 +2094,6 @@ cy_rslt_t cy_network_get_gateway_mac_address(cy_network_interface_context *iface
                 return CY_RSLT_NETWORK_ERROR_GET_MAC_ADDR;
             }
         } while(1);
-
     }
 
     memcpy(mac_addr, eth_ret->addr, CY_MAC_ADDR_LEN);
@@ -1965,7 +2147,6 @@ cy_rslt_t cy_network_get_netmask_address(cy_network_interface_context *iface_con
 cy_rslt_t cy_network_dhcp_renew(cy_network_interface_context *iface)
 {
 #if LWIP_IPV4
-    uint8_t interface_index;
 
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s(): START \n", __FUNCTION__ );
     if(is_interface_valid(iface) != CY_RSLT_SUCCESS)
@@ -1973,11 +2154,16 @@ cy_rslt_t cy_network_dhcp_renew(cy_network_interface_context *iface)
         return CY_RSLT_NETWORK_BAD_ARG;
     }
 
+
+    uint8_t interface_index;
     interface_index = (uint8_t)((iface->iface_type == CY_NETWORK_ETH_INTERFACE)? (CY_NETWORK_ETH_INTERFACE + iface->iface_idx) : iface->iface_type);
 
+#if !NO_SYS
     /* Invalidate ARP entries */
     netifapi_netif_common(LWIP_IP_HANDLE(interface_index), (netifapi_void_fn) invalidate_all_arp_entries, NULL );
-
+#else
+    invalidate_all_arp_entries(LWIP_IP_HANDLE(interface_index));
+#endif
 
     /*
      * If LPA is enabled, invoke the activity callback to resume the network stack
@@ -1988,10 +2174,14 @@ cy_rslt_t cy_network_dhcp_renew(cy_network_interface_context *iface)
         activity_callback(true);
     }
 
+#if !NO_SYS
     /* Renew DHCP */
     netifapi_netif_common(LWIP_IP_HANDLE(interface_index), NULL, dhcp_renew);
 
     cy_rtos_delay_milliseconds(DCHP_RENEWAL_DELAY_IN_MS);
+#else
+    dhcp_renew(LWIP_IP_HANDLE(interface_index));
+#endif
 
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s(): END \n", __FUNCTION__ );
     return CY_RSLT_SUCCESS;
@@ -2015,6 +2205,7 @@ static void invalidate_all_arp_entries(struct netif *netif)
 
 cy_rslt_t cy_network_ping(void *iface_context, cy_nw_ip_address_t *address, uint32_t timeout_ms, uint32_t* elapsed_time_ms)
 {
+#if LWIP_SOCKET
 #if LWIP_IPV4
     cy_time_t send_time;
     cy_time_t recvd_time;
@@ -2143,6 +2334,9 @@ exit:
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s() LWIP_IPV4 flag is not enabled \n", __FUNCTION__ );
     return CY_RSLT_NETWORK_NOT_SUPPORTED;
 #endif
+#else
+    return CY_RSLT_NETWORK_NOT_SUPPORTED;
+#endif // LWIP_SOCKET
 }
 
 #ifdef CYBSP_WIFI_CAPABLE
@@ -2155,6 +2349,7 @@ cy_rslt_t cy_wifimwcore_eapol_register_receive_handler( cy_wifimwcore_eapol_pack
 #endif
 
 #if LWIP_IPV4
+#if LWIP_SOCKET
 static void ping_prepare_echo(struct icmp_packet *iecho, uint16_t len, uint16_t *ping_seq_num)
 {
     int i;
@@ -2199,6 +2394,7 @@ static err_t ping_send(int socket_hnd, const cy_nw_ip_address_t* address, struct
     err = lwip_sendto(socket_hnd, iecho, sizeof(struct icmp_packet), 0, (struct sockaddr*) &to, sizeof(to));
 
     return (err ? ERR_OK : ERR_VAL);
+
 }
 
 static err_t ping_recv(int socket_hnd, cy_nw_ip_address_t* address, uint16_t *ping_seq_num)
@@ -2228,7 +2424,8 @@ static err_t ping_recv(int socket_hnd, cy_nw_ip_address_t* address, uint16_t *pi
 
     return ERR_TIMEOUT; /* No valid echo reply received before timeout */
 }
-#endif
+#endif // LWIP_SOCKET
+#endif // LWIP_IPV4
 
 static void internal_ip_change_callback (struct netif *netif)
 {
