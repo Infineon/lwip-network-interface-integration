@@ -1,5 +1,3 @@
-
-#ifdef COMPONENT_CAT3
 #ifndef ETH_LWIP_CONF_H
 #define ETH_LWIP_CONF_H
 /***********************************************************************************************************************
@@ -25,6 +23,9 @@ typedef enum ETH_LWIP_ERROR
     ETH_LWIP_ERROR_PHY_TIMEOUT    /**< PHY read failed*/
 }ETH_LWIP_ERROR_t;
 
+/**
+ * @brief HW interface-specific structure to map to interface context's HW interface handle.
+ */
 typedef struct ethernet_lwip
 {
     XMC_ETH_MAC_t *eth_mac;        /**< Pointer to the ETH peripheral driver structure */
@@ -35,7 +36,7 @@ typedef struct ethernet_lwip
 /**
  * @brief Error handler function.
  *
- * @param  error_code Code representing error \ref ETH_LWIP_ERROR_t .
+ * @param  error_code: Code representing error ETH_LWIP_ERROR_t .
  *
  * @return  None
  *
@@ -86,5 +87,4 @@ void ETH_LWIP_Error (ETH_LWIP_ERROR_t error_code);
  */
 void ETH_LWIP_Poll (void);
 
-#endif
 #endif

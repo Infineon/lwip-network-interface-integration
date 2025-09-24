@@ -36,8 +36,9 @@
 
 #if defined(CYBSP_ETHERNET_CAPABLE)
 #include "cycfg.h"
+#include "cy_network_mw_core.h"
 
-#ifdef COMPONENT_CAT3
+#ifdef CY_XMC4XXX_DEVICES
 #if (defined(eth_0_mux_0_STATIC_IP) && (eth_0_mux_0_STATIC_IP == 1u))
 #define eth_0_STATIC_IP eth_0_mux_0_STATIC_IP
 #define eth_0_GATEWAY_IP_ADDR eth_0_mux_0_GATEWAY_IP_ADDR
@@ -46,7 +47,7 @@
 #endif
 #endif
 
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
 #include "cy_ethif.h"
 #include "cy_ephy.h"
 

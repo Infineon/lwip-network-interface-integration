@@ -63,7 +63,7 @@
 #include "cy_result.h"
 #include "cy_lwip_log.h"
 
-#ifdef COMPONENT_CAT3
+#if defined(CY_XMC4XXX_DEVICES)
 #include "cycfg.h"
 #include "xmc_gpio.h"
 #include "xmc_eth_mac.h"
@@ -74,7 +74,7 @@
 #endif
 #endif
 
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
 #include "cy_ecm.h"
 #include "cy_internal.h"
 #endif
@@ -122,7 +122,7 @@
 #define ETH_FRAME_SIZE_FCS                      (4) // (This is constant value)
 #define ETH_FRAME_SIZE_HEADER                   (14) // 6 bytes for destination address, 6 bytes for source address, 2 bytes for Type (This is constant.)
 
-#ifdef COMPONENT_CAT3
+#ifdef CY_XMC4XXX_DEVICES
 #if !defined(eth_0_mux_0_PHY_ADDR)
 #error "Enable Ethernet(ETH) peripheral from device configurator to resolve build errors."
 #endif
@@ -157,16 +157,24 @@
 #define RX_STATUS_THREAD_PRIORITY               (CY_RTOS_PRIORITY_BELOWNORMAL)
 #endif
 
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
 #define TX_DATA_BUF_MAX                         CY_ETH_DEFINE_TOTAL_BD_PER_TXQUEUE
 #define TX_SEMAPHORE_TIMEOUT_MS                 120000
 #endif
 /******************************************************
  *               Variable Definitions
  ******************************************************/
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
 /* PDL Driver requires the data to be 32 byte aligned */
+#ifdef COMPONENT_PSE84
+#if (CY_CPU_CORTEX_M55)
+CY_SECTION(".cy_gpu_buf")
+#elif (CY_CPU_CORTEX_M33)
+CY_SECTION(".cy_shared_socmem")
+#endif
+#else /* !COMPONENT_PSE84 */
 CY_SECTION_SHAREDMEM
+#endif
 CY_ALIGN(32)
 static   uint8_t                              data_buffer[TX_DATA_BUF_MAX][CY_ETH_SIZE_MAX_FRAME];
 volatile uint8_t                              tx_free_buf_index;
@@ -181,7 +189,7 @@ extern   cy_queue_t                           rx_input_buffer_queue;
 LWIP_MEMPOOL_DECLARE(RX_POOL, ETH_RX_NO_OF_MEMPOOL_ELEMENTS, sizeof(my_custom_pbuf_t), "Zero-copy RX PBUF pool");
 #endif
 
-#ifdef COMPONENT_CAT3
+#ifdef CY_XMC4XXX_DEVICES
 #if !NO_SYS
 static cy_semaphore_t           rx_semaphore = NULL;
 static cy_thread_t              rx_event_thread = NULL;
@@ -243,7 +251,7 @@ static struct netif *xnetif = NULL;
 /******************************************************
  *               Static Function Declarations
  ******************************************************/
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
 void cy_process_ethernet_data_cb(ETH_Type *eth_type, uint8_t * rx_buffer, uint32_t length);
 void cy_notify_ethernet_rx_data_cb(ETH_Type *base, uint8_t **u8RxBuffer, uint32_t *u32Length);
 void cy_tx_complete_cb ( ETH_Type *pstcEth, uint8_t u8QueueIndex );
@@ -253,7 +261,7 @@ void cy_tx_failure_cb ( ETH_Type *pstcEth, uint8_t u8QueueIndex );
 static err_t ethif_output(struct netif *netif, struct pbuf *p);
 err_t ethernetif_init(struct netif *netif);
 
-#ifdef COMPONENT_CAT3
+#if defined(CY_XMC4XXX_DEVICES)
 static void low_level_init(struct netif *netif);
 static struct pbuf * low_level_input(void);
 static void ethernetif_input(void *arg);
@@ -266,7 +274,7 @@ static void ethernetif_link_status(void *args);
 /******************************************************
  *               Function Definitions
  ******************************************************/
-#ifdef COMPONENT_CAT3
+#if defined(CY_XMC4XXX_DEVICES)
 /*Weak function to be called in case of error*/
 __WEAK void ETH_LWIP_Error (ETH_LWIP_ERROR_t error_code)
 {
@@ -458,7 +466,7 @@ static void low_level_init(struct netif *netif)
 }
 #endif
 
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
 #if LWIP_IPV4 && LWIP_IGMP
 /*
  * This function is used to respond to IGMP (group management) requests.
@@ -782,7 +790,7 @@ static err_t ethif_output(struct netif *netif, struct pbuf *p)
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s(): START \n", __FUNCTION__ );
 #endif
 
-#ifdef COMPONENT_CAT3
+#ifdef CY_XMC4XXX_DEVICES
     XMC_UNUSED_ARG(netif);
     uint8_t *buf;
     uint32_t framelen = 0U;
@@ -829,7 +837,7 @@ static err_t ethif_output(struct netif *netif, struct pbuf *p)
     }
 #endif
 
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
     cy_network_interface_context *if_ctx;
     cy_en_ethif_status_t eth_status;
     uint32_t framelen=0;
@@ -932,7 +940,7 @@ static err_t ethif_output(struct netif *netif, struct pbuf *p)
     return ERR_OK ;
 }
 
-#ifdef COMPONENT_CAT3
+#ifdef CY_XMC4XXX_DEVICES
 /**
  * Should allocate a pbuf and transfer the bytes of the incoming
  * packet from the interface into the pbuf.
@@ -1091,7 +1099,7 @@ err_t ethernetif_init(struct netif* netif)
 
     cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "%s(): START \n", __FUNCTION__ );
 
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
     /* Initialize the RX POOL */
     LWIP_MEMPOOL_INIT(RX_POOL);
     /* Initialise the buffer index */
@@ -1103,7 +1111,7 @@ err_t ethernetif_init(struct netif* netif)
     /* Set the MAC hardware address to the interface.*/
     for(int i=0; i<ETH_HWADDR_LEN; i++)
     {
-#ifdef COMPONENT_CAT3
+#ifdef CY_XMC4XXX_DEVICES
         netif->hwaddr[0] =  (u8_t)eth_0_mux_0_MAC_ADDR0;
         netif->hwaddr[1] =  (u8_t)eth_0_mux_0_MAC_ADDR1;
         netif->hwaddr[2] =  (u8_t)eth_0_mux_0_MAC_ADDR2;
@@ -1142,7 +1150,7 @@ err_t ethernetif_init(struct netif* netif)
     netif->flags |= NETIF_FLAG_MLD6;
 #endif
 
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
 #if LWIP_IPV4 && LWIP_IGMP
     netif->flags |= NETIF_FLAG_IGMP;
     netif_set_igmp_mac_filter(netif, igmp_eth_filter) ;
@@ -1176,7 +1184,7 @@ err_t ethernetif_init(struct netif* netif)
 #endif
 #endif
 
-#ifdef COMPONENT_CAT3
+#ifdef CY_XMC4XXX_DEVICES
 #if !NO_SYS
     cy_rslt_t result = CY_RSLT_SUCCESS;
 #endif
@@ -1242,7 +1250,7 @@ err_t ethernetif_init(struct netif* netif)
     return ERR_OK;
 }
 
-#ifdef COMPONENT_CAT3
+#ifdef CY_XMC4XXX_DEVICES
 __WEAK void ETH_LWIP_UserIRQ(void)
 {
 }

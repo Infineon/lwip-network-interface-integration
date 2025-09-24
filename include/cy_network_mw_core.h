@@ -60,6 +60,15 @@ extern "C" {
 /******************************************************
  *                    Constants
  ******************************************************/
+
+/* Common DEFINE for XMC4X devices for Full Hobbes Update 
+ * Platforms covered under this DEFINE are as follows:
+ * XMC43XX, XMC44XX, XMC45XX, XMC47XX, XMC48XX
+ */
+#if defined(COMPONENT_XMC43XX) || defined(COMPONENT_XMC44XX) || defined(COMPONENT_XMC45XX) || defined(COMPONENT_XMC47XX) || defined(COMPONENT_XMC48XX)
+    #define CY_XMC4XXX_DEVICES
+#endif
+
 /**
  * Suppress unused variable warning
  */
@@ -372,7 +381,7 @@ cy_rslt_t cy_network_get_netmask_address(cy_network_interface_context *iface_con
  * */
 cy_rslt_t cy_network_ping(void *if_ctx, cy_nw_ip_address_t *address, uint32_t timeout_ms, uint32_t* elapsed_time_ms);
 
-#if defined(COMPONENT_CAT1)
+#if !defined(CY_XMC4XXX_DEVICES)
 /**
  * Random number generate using PDL trng APIs
  *

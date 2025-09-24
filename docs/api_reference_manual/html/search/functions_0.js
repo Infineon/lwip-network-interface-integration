@@ -15,7 +15,8 @@ var searchData=
   ['cy_5fnetwork_5fip_5fdown_12',['cy_network_ip_down',['../group__group__lwip__network__interface__integration__functions.html#ga0873c42900c9eca69751048a14fe926f',1,'cy_network_mw_core.h']]],
   ['cy_5fnetwork_5fip_5fup_13',['cy_network_ip_up',['../group__group__lwip__network__interface__integration__functions.html#ga9f0108965c7578de0d118ddd3003ba0c',1,'cy_network_mw_core.h']]],
   ['cy_5fnetwork_5fping_14',['cy_network_ping',['../group__group__lwip__network__interface__integration__functions.html#ga96878466389ed897cb41465388436856',1,'cy_network_mw_core.h']]],
-  ['cy_5fnetwork_5fregister_5fip_5fchange_5fcb_15',['cy_network_register_ip_change_cb',['../group__group__lwip__network__interface__integration__functions.html#ga8d7f732575e071b98b96dd6fb2265519',1,'cy_network_mw_core.h']]],
-  ['cy_5fnetwork_5fremove_5fnw_5finterface_16',['cy_network_remove_nw_interface',['../group__group__lwip__network__interface__integration__functions.html#gaf414d396ecdb54b41b2b0fdd65e6afef',1,'cy_network_mw_core.h']]],
-  ['cy_5fwifimwcore_5feapol_5fregister_5freceive_5fhandler_17',['cy_wifimwcore_eapol_register_receive_handler',['../group__group__wifimwcore__eapol__functions.html#gab3477cb9900a5387811bf337cb7d42b1',1,'cy_wifimwcore_eapol.h']]]
+  ['cy_5fnetwork_5frandom_5fnumber_5fgenerate_15',['cy_network_random_number_generate',['../group__group__lwip__network__interface__integration__functions.html#gac6f3e66127f64c8c2d75e7b396a65125',1,'cy_network_mw_core.h']]],
+  ['cy_5fnetwork_5fregister_5fip_5fchange_5fcb_16',['cy_network_register_ip_change_cb',['../group__group__lwip__network__interface__integration__functions.html#ga8d7f732575e071b98b96dd6fb2265519',1,'cy_network_mw_core.h']]],
+  ['cy_5fnetwork_5fremove_5fnw_5finterface_17',['cy_network_remove_nw_interface',['../group__group__lwip__network__interface__integration__functions.html#gaf414d396ecdb54b41b2b0fdd65e6afef',1,'cy_network_mw_core.h']]],
+  ['cy_5fwifimwcore_5feapol_5fregister_5freceive_5fhandler_18',['cy_wifimwcore_eapol_register_receive_handler',['../group__group__wifimwcore__eapol__functions.html#gab3477cb9900a5387811bf337cb7d42b1',1,'cy_wifimwcore_eapol.h']]]
 ];

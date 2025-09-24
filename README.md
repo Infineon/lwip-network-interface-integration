@@ -42,6 +42,8 @@ This library and its features are supported on the following platforms:
 
 - [PSoC&trade; 62S2 evaluation kit (CY8CEVAL-062S2-CYW955513SDM2WLIPA)]( https://www.infineon.com/cms/en/product/evaluation-boards/cy8ceval-062s2/ )
 
+- PSOC&trade; Edge E84 Evaluation Kit.
+
 ## Log messages
 
 By default, the lwIP network interface integration library disables all debug log messages. Do the following to enable log messages:
@@ -66,7 +68,7 @@ To ensure that all required libraries are fetched, include [ethernet-core-freert
 
    Create the *wifi-core-freertos-lwip-mbedtls.mtb* file with the following content:
 
-   `https://github.com/Infineon/wifi-core-freertos-lwip-mbedtls#latest-v2.X#\$$ASSET_REPO$$/wifi-core-freertos-lwip-mbedtls/latest-v2.X`
+   `https://github.com/Infineon/wifi-core-freertos-lwip-mbedtls#latest-v3.X#\$$ASSET_REPO$$/wifi-core-freertos-lwip-mbedtls/latest-v3.X`
 
 - *For Ethernet applications:*
 

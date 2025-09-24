@@ -18,5 +18,6 @@ var group__group__lwip__network__interface__integration__functions =
     [ "cy_network_get_gateway_ip_address", "group__group__lwip__network__interface__integration__functions.html#ga5ef631532460b722aacfee8a973ad6f4", null ],
     [ "cy_network_get_gateway_mac_address", "group__group__lwip__network__interface__integration__functions.html#gacafba46ba65d3b82abaeeb4897cfda78", null ],
     [ "cy_network_get_netmask_address", "group__group__lwip__network__interface__integration__functions.html#gaf7f8a15b99730c96acc26df268b0f697", null ],
-    [ "cy_network_ping", "group__group__lwip__network__interface__integration__functions.html#ga96878466389ed897cb41465388436856", null ]
+    [ "cy_network_ping", "group__group__lwip__network__interface__integration__functions.html#ga96878466389ed897cb41465388436856", null ],
+    [ "cy_network_random_number_generate", "group__group__lwip__network__interface__integration__functions.html#gac6f3e66127f64c8c2d75e7b396a65125", null ]
 ];

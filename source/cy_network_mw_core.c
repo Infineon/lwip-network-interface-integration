@@ -78,13 +78,13 @@
 #if defined(CYBSP_ETHERNET_CAPABLE)
 #include "cy_internal.h"
 
-#ifdef COMPONENT_CAT3
+#ifdef CY_XMC4XXX_DEVICES
 #include "xmc_gpio.h"
 #include "xmc_eth_mac.h"
 #include "xmc_eth_phy.h"
 #endif
 
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
 #if !NO_SYS
 #include "cyabs_rtos.h"
 #include "cy_worker_thread.h"
@@ -93,12 +93,12 @@
 
 #endif
 
-#if (COMPONENT_CAT1)
+#if !defined(CY_XMC4XXX_DEVICES)
 #include "cy_crypto_core.h"
 #include "cy_crypto_core_trng_config.h"
 #endif
-/* While using lwIP/sockets errno is required. Since IAR and ARMC6 doesn't define errno variable, the following definition is required for building it successfully. */
-#if !( (defined(__GNUC__) && !defined(__ARMCC_VERSION)) )
+/* While using lwIP/sockets errno is required. Since IAR, ARMC6 and LLVM doesn't define errno variable, the following definition is required for building it successfully. */
+#if (!( (defined(__GNUC__) && !defined(__ARMCC_VERSION)) ) || defined(__llvm__))
 int errno;
 #endif
 
@@ -155,7 +155,7 @@ int errno;
 #define ETH_INTERFACE_INDEX                      (2U)
 
 #if defined(CYBSP_ETHERNET_CAPABLE)
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
 #define CM_RX_WORKER_THREAD_PRIORITY                  (CY_RTOS_PRIORITY_HIGH)
 #define CM_RX_WORKER_THREAD_STACK_SIZE                (4 * 1024)
 #define CM_RX_WORKER_THREAD_QUEUE_SIZE                (32)
@@ -164,13 +164,13 @@ int errno;
 #define CM_TX_WORKER_THREAD_QUEUE_SIZE                (32)
 #endif
 
-#ifdef COMPONENT_CAT3
+#ifdef CY_XMC4XXX_DEVICES
 #define MAX_WAIT_ETHERNET_LINK_UP                     (5000) /* After hardware initialization, max wait time to get the physical link up */
 #define WAIT_INTERVAL_CHECK_ETHERNET_LINK_UP          (100)  /* Interval to check the Ethernet PHY status in milliseconds. The driver takes ~1 second to update the register. */
 #endif
 #endif
 
-#if defined(COMPONENT_CAT1)
+#if !defined(CY_XMC4XXX_DEVICES)
 #define MAX_TRNG_BIT_SIZE        (32UL)
 #endif
 
@@ -239,7 +239,7 @@ static cy_mutex_t *cy_prng_mutex_ptr;
 #endif
 
 #if defined(CYBSP_ETHERNET_CAPABLE)
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
 cy_worker_thread_info_t          cy_rx_worker_thread;
 cy_queue_t                       rx_input_buffer_queue;
 cy_worker_thread_info_t          cy_tx_worker_thread;
@@ -250,7 +250,7 @@ uint8_t *pRx_Q_buff_pool[CY_ETH_DEFINE_TOTAL_BD_PER_RXQUEUE];
 #endif
 #endif
 
-#if defined(COMPONENT_CAT1)
+#if !defined(CY_XMC4XXX_DEVICES)
 /** mutex to protect trng count */
 static cy_mutex_t trng_mutex;
 #endif
@@ -289,7 +289,7 @@ cy_rslt_t cy_prng_get_random( void* buffer, uint32_t buffer_length );
 cy_rslt_t cy_prng_add_entropy( const void* buffer, uint32_t buffer_length );
 #endif
 
-#if defined(COMPONENT_CAT1)
+#if !defined(CY_XMC4XXX_DEVICES)
 static int cy_trng_release( void );
 static int cy_trng_reserve( void );
 #endif
@@ -709,7 +709,7 @@ static err_t wifiinit(struct netif *iface)
 #endif
 
 #if defined(CYBSP_ETHERNET_CAPABLE)
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
 static cy_rslt_t cy_buffer_pool_create(uint32_t no_of_buffers, uint32_t sizeof_buffer, cy_internal_buffer_pool_t **handle)
 {
     uint16_t header_size;
@@ -816,7 +816,7 @@ static void cy_buffer_pool_delete(cy_internal_buffer_pool_t *pool_handle)
 cy_rslt_t cy_network_init( void )
 {
 #if defined(CYBSP_ETHERNET_CAPABLE)
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
     cy_worker_thread_params_t params;
     cy_buffer_t get_buffer = NULL;
     uint8_t *pbuffer = NULL;
@@ -862,7 +862,7 @@ cy_rslt_t cy_network_init( void )
     }
 
 #if defined(CYBSP_ETHERNET_CAPABLE)
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
 
     /* Create the RX worker thread */
     memset(&params, 0, sizeof(params));
@@ -974,7 +974,7 @@ cy_rslt_t cy_network_init( void )
 #endif
 #endif
 
-#if defined(COMPONENT_CAT1)
+#if !defined(CY_XMC4XXX_DEVICES)
     if( cy_rtos_init_mutex(&trng_mutex) != CY_RSLT_SUCCESS )
     {
         cm_cy_log_msg( CYLF_MIDDLEWARE, CY_LOG_ERR, "\n cy_rtos_init_mutex failed\n" );
@@ -992,7 +992,7 @@ cy_rslt_t cy_network_init( void )
     return CY_RSLT_SUCCESS;
 
 #if defined(CYBSP_ETHERNET_CAPABLE)
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
 
 exit:
     cy_worker_thread_delete(&cy_tx_worker_thread);
@@ -1024,7 +1024,7 @@ cy_rslt_t cy_network_deinit( void )
         {
 
 #if defined(CYBSP_ETHERNET_CAPABLE)
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
             /* Delete the rx worker thread */
             cy_worker_thread_delete(&cy_rx_worker_thread);
 
@@ -1046,7 +1046,7 @@ cy_rslt_t cy_network_deinit( void )
 #endif
 #endif
 
-#ifdef COMPONENT_CAT1
+#if !defined(CY_XMC4XXX_DEVICES)
             cy_rtos_deinit_mutex(&trng_mutex);
 #endif
         }
@@ -1477,7 +1477,7 @@ cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface)
     interface_index = (uint8_t)((iface->iface_type == CY_NETWORK_ETH_INTERFACE)? (CY_NETWORK_ETH_INTERFACE + iface->iface_idx) : iface->iface_type);
     cm_cy_log_msg(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "interface_index:[%d] \n", interface_index);
 
-#ifdef COMPONENT_CAT3
+#ifdef CY_XMC4XXX_DEVICES
     uint32_t total_wait_time = 0;
 
     while( total_wait_time < MAX_WAIT_ETHERNET_LINK_UP )
@@ -2348,6 +2348,209 @@ cy_rslt_t cy_wifimwcore_eapol_register_receive_handler( cy_wifimwcore_eapol_pack
 }
 #endif
 
+/*
+ * Following code is copied from lwip\STABLE-2_1_2_RELEASE\src\core\inet_chksum.c without
+ * changing the content of the lwip_standard_chksum function. On M55 core with GCC compiler and with
+ * high optimization lwip_standard_chksum() returns incorrect chksum value for a network packet.
+ * Setting lower optimization level for this functions fixes the issue. So LWIP_CHKSUM is defined to
+ * cy_lwip_standard_chksum in lwipopts.h for M55 core with non-debug mode and GCC compiler.
+ */
+#if (CY_CPU_CORTEX_M55) && defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__llvm__) && defined(NDEBUG)
+#if (LWIP_CHKSUM_ALGORITHM == 1) /* Version #1 */
+/**
+ * lwip checksum
+ *
+ * @param dataptr points to start of data to be summed at any boundary
+ * @param len length of data to be summed
+ * @return host order (!) lwip checksum (non-inverted Internet sum)
+ *
+ * @note accumulator size limits summable length to 64k
+ * @note host endianess is irrelevant (p3 RFC1071)
+ */
+
+__attribute__((optimize("-O3")))
+u16_t
+cy_lwip_standard_chksum(const void *dataptr, int len)
+{
+  u32_t acc;
+  u16_t src;
+  const u8_t *octetptr;
+
+  acc = 0;
+  /* dataptr may be at odd or even addresses */
+  octetptr = (const u8_t *)dataptr;
+  while (len > 1) {
+    /* declare first octet as most significant
+       thus assume network order, ignoring host order */
+    src = (*octetptr) << 8;
+    octetptr++;
+    /* declare second octet as least significant */
+    src |= (*octetptr);
+    octetptr++;
+    acc += src;
+    len -= 2;
+  }
+  if (len > 0) {
+    /* accumulate remaining octet */
+    src = (*octetptr) << 8;
+    acc += src;
+  }
+  /* add deferred carry bits */
+  acc = (acc >> 16) + (acc & 0x0000ffffUL);
+  if ((acc & 0xffff0000UL) != 0) {
+    acc = (acc >> 16) + (acc & 0x0000ffffUL);
+  }
+  /* This maybe a little confusing: reorder sum using lwip_htons()
+     instead of lwip_ntohs() since it has a little less call overhead.
+     The caller must invert bits for Internet sum ! */
+  return lwip_htons((u16_t)acc);
+}
+#endif
+
+#if (LWIP_CHKSUM_ALGORITHM == 2) /* Alternative version #2 */
+/*
+ * Curt McDowell
+ * Broadcom Corp.
+ * csm@broadcom.com
+ *
+ * IP checksum two bytes at a time with support for
+ * unaligned buffer.
+ * Works for len up to and including 0x20000.
+ * by Curt McDowell, Broadcom Corp. 12/08/2005
+ *
+ * @param dataptr points to start of data to be summed at any boundary
+ * @param len length of data to be summed
+ * @return host order (!) lwip checksum (non-inverted Internet sum)
+ */
+__attribute__((optimize("-O3")))
+u16_t
+cy_lwip_standard_chksum(const void *dataptr, int len)
+{
+  const u8_t *pb = (const u8_t *)dataptr;
+  const u16_t *ps;
+  u16_t t = 0;
+  u32_t sum = 0;
+  int odd = ((mem_ptr_t)pb & 1);
+
+  /* Get aligned to u16_t */
+  if (odd && len > 0) {
+    ((u8_t *)&t)[1] = *pb++;
+    len--;
+  }
+
+  /* Add the bulk of the data */
+  ps = (const u16_t *)(const void *)pb;
+  while (len > 1) {
+    sum += *ps++;
+    len -= 2;
+  }
+
+  /* Consume left-over byte, if any */
+  if (len > 0) {
+    ((u8_t *)&t)[0] = *(const u8_t *)ps;
+  }
+
+  /* Add end bytes */
+  sum += t;
+
+  /* Fold 32-bit sum to 16 bits
+     calling this twice is probably faster than if statements... */
+  sum = FOLD_U32T(sum);
+  sum = FOLD_U32T(sum);
+
+  /* Swap if alignment was odd */
+  if (odd) {
+    sum = SWAP_BYTES_IN_WORD(sum);
+  }
+
+  return (u16_t)sum;
+}
+#endif
+
+#if (LWIP_CHKSUM_ALGORITHM == 3) /* Alternative version #3 */
+/**
+ * An optimized checksum routine. Basically, it uses loop-unrolling on
+ * the checksum loop, treating the head and tail bytes specially, whereas
+ * the inner loop acts on 8 bytes at a time.
+ *
+ * @arg start of buffer to be checksummed. May be an odd byte address.
+ * @len number of bytes in the buffer to be checksummed.
+ * @return host order (!) lwip checksum (non-inverted Internet sum)
+ *
+ * by Curt McDowell, Broadcom Corp. December 8th, 2005
+ */
+__attribute__((optimize("-O3")))
+u16_t
+cy_lwip_standard_chksum(const void *dataptr, int len)
+{
+  const u8_t *pb = (const u8_t *)dataptr;
+  const u16_t *ps;
+  u16_t t = 0;
+  const u32_t *pl;
+  u32_t sum = 0, tmp;
+  /* starts at odd byte address? */
+  int odd = ((mem_ptr_t)pb & 1);
+
+  if (odd && len > 0) {
+    ((u8_t *)&t)[1] = *pb++;
+    len--;
+  }
+
+  ps = (const u16_t *)(const void *)pb;
+
+  if (((mem_ptr_t)ps & 3) && len > 1) {
+    sum += *ps++;
+    len -= 2;
+  }
+
+  pl = (const u32_t *)(const void *)ps;
+
+  while (len > 7)  {
+    tmp = sum + *pl++;          /* ping */
+    if (tmp < sum) {
+      tmp++;                    /* add back carry */
+    }
+
+    sum = tmp + *pl++;          /* pong */
+    if (sum < tmp) {
+      sum++;                    /* add back carry */
+    }
+
+    len -= 8;
+  }
+
+  /* make room in upper bits */
+  sum = FOLD_U32T(sum);
+
+  ps = (const u16_t *)pl;
+
+  /* 16-bit aligned word remaining? */
+  while (len > 1) {
+    sum += *ps++;
+    len -= 2;
+  }
+
+  /* dangling tail byte remaining? */
+  if (len > 0) {                /* include odd byte */
+    ((u8_t *)&t)[0] = *(const u8_t *)ps;
+  }
+
+  sum += t;                     /* add end bytes */
+
+  /* Fold 32-bit sum to 16 bits
+     calling this twice is probably faster than if statements... */
+  sum = FOLD_U32T(sum);
+  sum = FOLD_U32T(sum);
+
+  if (odd) {
+    sum = SWAP_BYTES_IN_WORD(sum);
+  }
+
+  return (u16_t)sum;
+}
+#endif
+#endif /*(CY_CPU_CORTEX_M55) && defined(__GNUC__) && !defined(__ARMCC_VERSION) && defined(NDEBUG)*/
+
 #if LWIP_IPV4
 #if LWIP_SOCKET
 static void ping_prepare_echo(struct icmp_packet *iecho, uint16_t len, uint16_t *ping_seq_num)
@@ -2365,7 +2568,7 @@ static void ping_prepare_echo(struct icmp_packet *iecho, uint16_t len, uint16_t 
         iecho->data[i] = (uint8_t)i;
     }
 
-#ifndef COMPONENT_CAT3
+#ifndef CY_XMC4XXX_DEVICES
     iecho->hdr.chksum = inet_chksum(iecho, len);
 #endif
 }
@@ -2622,7 +2825,7 @@ cy_rslt_t cy_prng_add_entropy( const void* buffer, uint32_t buffer_length )
 }
 #endif
 
-#if defined(COMPONENT_CAT1)
+#if !defined(CY_XMC4XXX_DEVICES)
 static int cy_trng_release()
 {
     if (Cy_Crypto_Core_IsEnabled(CRYPTO))

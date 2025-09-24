@@ -195,7 +195,7 @@ static bool is_dhcp_server_started    = false;
  ******************************************************/
 
 #define DHCP_THREAD_PRIORITY                  (CY_RTOS_PRIORITY_ABOVENORMAL)
-#define DHCP_THREAD_STACK_SIZE                (1280)
+#define DHCP_THREAD_STACK_SIZE                (1500)
 
 
 cy_rslt_t cy_lwip_dhcp_server_start(cy_lwip_dhcp_server_t* server, cy_network_interface_context *iface_context)
