@@ -6,6 +6,10 @@ See the [README.md](./README.md) for a complete description of the [lwIP network
 
 ## Changelog
 
+### v1.7.1
+
+- Minor bug fix for LLVM_ARM toolchain support.
+
 ### v1.7.0
 
 - Added support for PSOC&trade; Edge E84 (PSE84) platform.
