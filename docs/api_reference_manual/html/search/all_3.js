@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['gateway_0',['gateway',['../structcy__network__static__ip__addr__t.html#ab6f95131502bb21b6cd8c7261880e786',1,'cy_network_static_ip_addr_t']]],
-  ['group_5flwip_5fnetwork_5finterface_5fintegration_5fmacros_1',['Group_lwip_network_interface_integration_macros',['../group__group__lwip__network__interface__integration__macros.html',1,'']]]
+  ['features_20and_20functionality_0',['Features and functionality',['../index.html#section_features',1,'']]],
+  ['functionality_1',['Features and functionality',['../index.html#section_features',1,'']]],
+  ['functions_2',['functions',['../group__group__wifimwcore__eapol__functions.html',1,'EAPOL Functions'],['../group__group__lwip__network__interface__integration__functions.html',1,'Port functions']]]
 ];

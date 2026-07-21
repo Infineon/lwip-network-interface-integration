@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['group_5flwip_5fnetwork_5finterface_5fintegration_5fmacros_0',['Group_lwip_network_interface_integration_macros',['../group__group__lwip__network__interface__integration__macros.html',1,'']]]
+  ['eapol_20functions_0',['EAPOL Functions',['../group__group__wifimwcore__eapol__functions.html',1,'']]],
+  ['enumerated_20types_1',['Enumerated types',['../group__group__lwip__network__interface__integration__enums.html',1,'']]],
+  ['error_20codes_2',['WiFi middleware specific error codes',['../group__generic__lwip__whd__port__defines.html',1,'']]]
 ];

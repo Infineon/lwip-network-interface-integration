@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['xnetif_0',['xnetif',['../struct_e_t_h___l_w_i_p__t.html#a80a27f85afa8e862ab995b3bcedaacda',1,'ETH_LWIP_t']]]
+  ['tls_20configuration_20parameters_0',['Mbed TLS configuration parameters',['../group__group__optimization__config.html#optim_mbedTLS',1,'']]],
+  ['types_1',['Enumerated types',['../group__group__lwip__network__interface__integration__enums.html',1,'']]]
 ];

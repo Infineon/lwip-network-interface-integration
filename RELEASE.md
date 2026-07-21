@@ -6,6 +6,10 @@ See the [README.md](./README.md) for a complete description of the [lwIP network
 
 ## Changelog
 
+### v1.7.2
+
+- Update check for NULL buffer to avoid rx BD read errors in MAC
+
 ### v1.7.1
 
 - Minor bug fix for LLVM_ARM toolchain support.

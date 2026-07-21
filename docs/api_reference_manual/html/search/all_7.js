@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['mac_5faddress_0',['mac_address',['../structcy__network__interface__context.html#a14ed6f094a4be9e750e9111abd020b18',1,'cy_network_interface_context']]]
+  ['lwip_20configuration_20parameters_0',['lwIP configuration parameters',['../group__group__optimization__config.html#optim_lwip',1,'']]],
+  ['lwip_20network_20interface_20integration_1',['lwip network interface integration',['../group__group__lwip__network__interface__integration.html',1,'lwip-network-interface-integration'],['../group__group__optimization__config.html',1,'Optimization of lwIP-network-interface-integration']]]
 ];

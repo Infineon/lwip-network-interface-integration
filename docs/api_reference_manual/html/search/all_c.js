@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['wifi_20middleware_20specific_20error_20codes_0',['WiFi middleware specific error codes',['../group__generic__lwip__whd__port__defines.html',1,'']]]
+  ['specific_20error_20codes_0',['WiFi middleware specific error codes',['../group__generic__lwip__whd__port__defines.html',1,'']]],
+  ['structures_1',['Port structures',['../group__group__lwip__network__interface__integration__structures.html',1,'']]],
+  ['supported_20platforms_2',['Supported Platforms',['../index.html#section_platforms',1,'']]]
 ];

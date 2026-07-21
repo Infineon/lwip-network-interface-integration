@@ -25,14 +25,13 @@
 var NAVTREE =
 [
   [ "lwIP network interface integration library", "index.html", [
-    [ "Overview", "index.html", null ],
-    [ "API Reference", "modules.html", "modules" ]
+    [ "Overview", "index.html", null ]
   ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"group__generic__lwip__whd__port__defines.html"
+"index.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

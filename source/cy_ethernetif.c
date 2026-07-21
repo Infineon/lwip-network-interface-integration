@@ -706,6 +706,13 @@ void cy_notify_ethernet_rx_data_cb(ETH_Type *base, uint8_t **u8RxBuffer, uint32_
         return;
     }
 
+    if(pbuffer == NULL)
+    {
+        *u8RxBuffer = NULL;
+        *u32Length = 0;
+        return;
+    }
+
     params = (cy_rx_buffer_info_t *)pbuffer;
     params->rx_data_ptr = (uint8_t *)(pbuffer + sizeof(cy_rx_buffer_info_t));
     *u32Length = CY_ETH_SIZE_MAX_FRAME;

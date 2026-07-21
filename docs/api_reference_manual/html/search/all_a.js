@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['port_20functions_0',['Port functions',['../group__group__lwip__network__interface__integration__functions.html',1,'']]],
-  ['port_20structures_1',['Port structures',['../group__group__lwip__network__interface__integration__structures.html',1,'']]],
-  ['protected_5ffunc_5fcall_2',['PROTECTED_FUNC_CALL',['../group__group__lwip__network__interface__integration__macros.html#gaa54e6e5e8fc59bfc8a004e439eb28fb1',1,'cy_network_mw_core.h']]]
+  ['of_20lwip_20network_20interface_20integration_0',['Optimization of lwIP-network-interface-integration',['../group__group__optimization__config.html',1,'']]],
+  ['optimization_20of_20lwip_20network_20interface_20integration_1',['Optimization of lwIP-network-interface-integration',['../group__group__optimization__config.html',1,'']]],
+  ['overview_2',['Overview',['../index.html',1,'']]]
 ];
