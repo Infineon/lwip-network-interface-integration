@@ -860,6 +860,39 @@ table.doxtable th {
 	padding-top: 5px;
 }
 
+/* Markdown tables (generated from README/*.md). These rules restore the
+   per-column alignment classes that Doxygen emits from the markdown
+   separator row (:---, ---:, :---:). Without them, the <th> cells fall back
+   to the browser default (centered) even though the markdown requests left
+   alignment, so the header row looks centered while the body looks left. */
+table.markdownTable {
+	border-collapse: collapse;
+	margin-top: 4px;
+	margin-bottom: 4px;
+}
+
+table.markdownTable td, table.markdownTable th {
+	border: 1px solid #2D4068;
+	padding: 3px 7px 2px;
+}
+
+th.markdownTableHeadLeft, td.markdownTableBodyLeft {
+	text-align: left;
+}
+
+th.markdownTableHeadRight, td.markdownTableBodyRight {
+	text-align: right;
+}
+
+th.markdownTableHeadCenter, td.markdownTableBodyCenter {
+	text-align: center;
+}
+
+table.markdownTableHead th {
+	background-color: #A8A8A8;
+	color: #000;
+}
+
 table.fieldtable {
         /*width: 100%;*/
         margin-bottom: 10px;

@@ -1,8 +1,6 @@
 var searchData=
 [
-  ['eapol_20functions_0',['EAPOL Functions',['../group__group__wifimwcore__eapol__functions.html',1,'']]],
-  ['enumerated_20types_1',['Enumerated types',['../group__group__lwip__network__interface__integration__enums.html',1,'']]],
-  ['error_20codes_2',['WiFi middleware specific error codes',['../group__generic__lwip__whd__port__defines.html',1,'']]],
-  ['eth_5flwip_5ft_3',['ETH_LWIP_t',['../struct_e_t_h___l_w_i_p__t.html',1,'']]],
-  ['eth_5fmac_4',['eth_mac',['../struct_e_t_h___l_w_i_p__t.html#a73ef7f8abc56634dd2923f9fe4ce0081',1,'ETH_LWIP_t']]]
+  ['2_0',['2',['../md__2builds_2repo_2lwip-network-interface-integration_2_r_e_l_e_a_s_e.html#autotoc_md32',1,'v1.1.2'],['../md__2builds_2repo_2lwip-network-interface-integration_2_r_e_l_e_a_s_e.html#autotoc_md21',1,'v1.7.2']]],
+  ['2_200_1',['v1.2.0',['../md__2builds_2repo_2lwip-network-interface-integration_2_r_e_l_e_a_s_e.html#autotoc_md30',1,'']]],
+  ['2_20initialize_20the_20network_20stack_20and_20bring_20up_20an_20interface_2',['2. Initialize the network stack and bring up an interface',['../index.html#autotoc_md9',1,'']]]
 ];

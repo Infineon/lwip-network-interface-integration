@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['of_20lwip_20network_20interface_20integration_0',['Optimization of lwIP-network-interface-integration',['../group__group__optimization__config.html',1,'']]],
-  ['optimization_20of_20lwip_20network_20interface_20integration_1',['Optimization of lwIP-network-interface-integration',['../group__group__optimization__config.html',1,'']]],
-  ['overview_2',['Overview',['../index.html',1,'']]]
+  ['bring_20up_20an_20interface_0',['2. Initialize the network stack and bring up an interface',['../index.html#autotoc_md9',1,'']]]
 ];

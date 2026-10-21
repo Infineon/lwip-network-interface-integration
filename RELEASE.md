@@ -6,6 +6,10 @@ See the [README.md](./README.md) for a complete description of the [lwIP network
 
 ## Changelog
 
+### v1.8.0
+
+- Documentation updates to make documentation AI-friendly, minor fixes for the assets to make them Hobsification-compatible and minor code update.
+
 ### v1.7.2
 
 - Update check for NULL buffer to avoid rx BD read errors in MAC
@@ -72,20 +76,6 @@ See the [README.md](./README.md) for a complete description of the [lwIP network
 - Initial release for lwIP network interface integration library
 
 - Adds support for WiFi capability and Ethernet capability on lwIP TCP/IP stack
-
-### Supported software and tools
-
-This version of the library was validated for compatibility with the following software and tools:
-
-| Software and tools                                           | Version |
-| :---                                                         | :----:  |
-| ModusToolbox&trade; software environment                     | 3.6     |
-| ModusToolbox&trade; Device Configurator                      | 5.50    |
-| GCC compiler                                                 | 14.2.1  |
-| IAR compiler                                                 | 9.50.2  |
-| Arm&reg; compiler 6                                          | 6.22    |
-| LLVM compiler                                                | 19.1.5  |
-
 
 ## Additional information
 

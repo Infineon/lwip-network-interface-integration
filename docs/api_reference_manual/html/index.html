@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>lwIP network interface integration library: Overview</title>
+<title>lwIP network interface integration library: lwIP Network Interface Integration Library - Seamlessly Connect lwIP TCP/IP Stack with Wi-Fi and Ethernet Drivers</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -90,32 +90,158 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">Overview </div></div>
+  <div class="headertitle"><div class="title">lwIP Network Interface Integration Library - Seamlessly Connect lwIP TCP/IP Stack with Wi-Fi and Ethernet Drivers </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>This library is an integration layer that links lwIP network stack with underlying Wi-Fi Host Driver(WHD) and Ethernet driver. This library interacts with FreeRTOS, lwIP TCP/IP stack, mbed TLS for security, Wi-Fi host driver (WHD) and Ethernet Driver. It contains the code to bind these components together.</p>
-<p>The ModusToolbox&trade; Wi-Fi/Ethernet code examples download this library automatically.</p>
-<h1><a class="anchor" id="section_features"></a>
-Features and functionality</h1>
-<p>This library is designed to work with both PSoC 6 kits having Wi-Fi capability and XMC kits having ethernet capability supported through the ModusToolbox&trade; software environment.</p>
-<p>In order to enable Wi-Fi connectivity on platforms with smaller memory footprint, a set of LwIP and MbedTLS configuration parameters that can be enabled/disabled have been documented here <a class="el" href="group__group__optimization__config.html">Optimization of lwIP-network-interface-integration</a></p>
-<h1><a class="anchor" id="section_platforms"></a>
-Supported Platforms</h1>
-<p>This library and its features are supported on the following platforms:</p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/cy8cproto-062-4343w">PSoC&trade; 6 Wi-Fi Bluetooth&reg; prototyping kit (CY8CPROTO-062-4343W)</a></p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/cy8ckit-062s2-43012">PSoC&trade; 62S2 Wi-Fi Bluetooth&reg; pioneer kit (CY8CKIT-062S2-43012)</a></p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/cy8ckit-062-wifi-bt">PSoC&trade; 6 Wi-Fi Bluetooth&reg; pioneer kit (CY8CKIT-062-WiFi-BT)</a></p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/cy8ckit-064s0s2-4343w">PSoC&trade; 64S0S2 Wi-Fi Bluetooth&reg; pioneer kit (CY8CKIT-064S0S2-4343W)</a></p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/cy8ceval-062s2">PSoC&trade; 62S2 evaluation kit (CY8CEVAL-062S2-LAI-4373M2)</a></p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/cyw954907aeval1f">CYW954907AEVAL1F Evaluation Kit(CYW954907AEVAL1F)</a></p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/cyw943907aeval1f">CYW943907AEVAL1F Evaluation Kit(CYW943907AEVAL1F)</a></p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/cy8ceval-062s2">PSoC&trade; 62S2 evaluation kit (CY8CEVAL-062S2-MUR-43439M2)</a></p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc72_evk/">XMC7200D-E272K8384 kit (KIT-XMC72-EVK)</a></p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc47_relax_v1/">XMC4700 Relax Kit (KIT_XMC47_RELAX_V1)</a></p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc48_relax_ecat_v1/">XMC4800 Relax EtherCAT Kit (KIT_XMC48_RELAX_ECAT_V1)</a></p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc72_evk/">XMC7200D-E272K8384 kit (KIT_XMC72_EVK_MUR_43439M2)</a></p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/cy8ceval-062s2/">PSoC&trade; 62S2 evaluation kit (CY8CEVAL-062S2-CYW43022CUB)</a></p>
-<p><a href="https://www.infineon.com/cms/en/product/evaluation-boards/cy8ceval-062s2/">PSoC&trade; 62S2 evaluation kit (CY8CEVAL-062S2-CYW955513SDM2WLIPA)</a> </p>
+<div class="textblock"><p><a class="anchor" id="md__2builds_2repo_2lwip-network-interface-integration_2_r_e_a_d_m_e"></a> </p>
+<h1><a class="anchor" id="autotoc_md1"></a>
+Overview</h1>
+<p>The lwIP network interface integration library is an integration layer that links the lwIP TCP/IP stack with the underlying Wi-Fi Host Driver (WHD) and Ethernet driver on Infineon platforms. It interacts with FreeRTOS, the lwIP TCP/IP stack, mbed TLS for security, WHD, and the Ethernet driver, and contains the code that binds these components together. This eliminates the complexity of binding FreeRTOS, lwIP, mbed TLS, WHD, and Ethernet drivers together, enabling developers to quickly bring up network connectivity on PSOC&trade;, XMC&trade;, and PSOC&trade; Edge devices using the ModusToolbox&trade; software environment. The ModusToolbox&trade; Wi-Fi and Ethernet code examples download this library automatically.</p>
+<p>This library is the equivalent of the now-deprecated <em>Wi-Fi middleware core</em> library. <em>Wi-Fi middleware core</em> users can follow the <a class="el" href="md__2builds_2repo_2lwip-network-interface-integration_2porting__guide.html">porting guide</a> to migrate their applications to the <em>lwIP network interface integration</em> library.</p>
+<h1><a class="anchor" id="autotoc_md2"></a>
+Features</h1>
+<ul>
+<li><b>Wi-Fi and Ethernet interface support</b>: Provides a unified API to add, remove, and manage both Wi-Fi (STA and SoftAP) and Ethernet network interfaces through <code>cy_network_add_nw_interface</code> and <code>cy_network_remove_nw_interface</code>.</li>
+<li><b>DHCP and static IP configuration</b>: Supports dynamic IP address assignment via DHCP as well as user-provided static IP configuration, with DHCP renew capability through <code>cy_network_dhcp_renew</code>. Includes a built-in DHCP server for SoftAP mode.</li>
+<li><b>IPv4 and IPv6 address management</b>: Retrieve IPv4 addresses, IPv6 link-local addresses, gateway IP/MAC addresses, and subnet masks using dedicated API functions (<code>cy_network_get_ip_address</code>, <code>cy_network_get_ipv6_address</code>, <code>cy_network_get_gateway_ip_address</code>, <code>cy_network_get_netmask_address</code>).</li>
+<li><b>Network activity monitoring and IP change callbacks</b>: Register callbacks for IP address changes (<code>cy_network_register_ip_change_cb</code>) and network Tx/Rx activity events (<code>cy_network_activity_register_cb</code>) to integrate with power management and application logic.</li>
+<li><b>Network diagnostics</b>: Built-in ICMP ping support via <code>cy_network_ping</code> for connectivity testing, and true random number generation using hardware TRNG via <code>cy_network_random_number_generate</code> (not available on XMC4xxx devices).</li>
+<li><b>D-cache and Rx polling support</b>: Supports D-cache enablement on XMC7000 devices and Rx polling method for XMC4700/XMC4800 devices for optimized Ethernet performance.</li>
+<li><b>Memory footprint optimization</b>: For devices with limited flash and RAM, provides a documented set of tunable lwIP and mbed TLS configuration parameters that can be enabled or disabled to conserve code memory, static RAM, and heap memory. See the "Optimization of lwIP network interface integration" section of the <a href="https://infineon.github.io/lwip-network-interface-integration/api_reference_manual/html/index.html">Reference Manual</a>.</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md3"></a>
+When to Use</h1>
+<p>Use this library when developing IoT applications on Infineon PSOC&trade; 6, PSOC&trade; 64, XMC&trade; 7200, XMC&trade; 4700/4800, or PSOC&trade; Edge E84 platforms that require TCP/IP network connectivity over Wi-Fi or Ethernet. Typical scenarios include:</p>
+<ul>
+<li>Building Wi-Fi-connected IoT applications using PSOC&trade; 6 kits (e.g., <a href="https://www.infineon.com/cms/en/product/evaluation-boards/cy8cproto-062-4343w/">CY8CPROTO-062-4343W</a>, <a href="https://www.infineon.com/cms/en/product/evaluation-boards/cy8ckit-062s2-43012/">CY8CKIT-062S2-43012</a>) with the lwIP network stack and FreeRTOS.</li>
+<li>Developing Ethernet-based industrial or IoT applications on XMC&trade; kits (e.g., <a href="https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc72_evk/">KIT-XMC72-EVK</a>, <a href="https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc47_relax_v1/">KIT_XMC47_RELAX_V1</a>, <a href="https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc48_relax_ecat_v1/">KIT_XMC48_RELAX_ECAT_V1</a>).</li>
+<li>Migrating from the deprecated <em>Wi-Fi middleware core</em> library to the new <em>lwIP network interface integration</em> library (see the <a class="el" href="md__2builds_2repo_2lwip-network-interface-integration_2porting__guide.html">porting guide</a> for API mapping).</li>
+<li>Any ModusToolbox&trade; project that requires a standardized abstraction layer between the lwIP stack and the underlying hardware network drivers.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md4"></a>
+Supported Platforms</h2>
+<p>This library and its features are supported on Infineon Wi-Fi- and Ethernet-capable device families:</p>
+<ul>
+<li><b>PSOC&trade; 6</b> with CYW4343W / CYW43012 / CYW4373 / CYW43439 / CYW43022 / CYW955513 connectivity</li>
+<li><b>PSOC&trade; 64</b> secure MCUs</li>
+<li><b>XMC7200</b> with CYW43xxx connectivity (Wi-Fi and Ethernet)</li>
+<li><b>XMC4700 / XMC4800</b> (Ethernet)</li>
+<li><b>PSOC&trade; Edge E84</b></li>
+</ul>
+<p>The set of validated kits grows over time; see <a class="el" href="md__2builds_2repo_2lwip-network-interface-integration_2_r_e_l_e_a_s_e.html">RELEASE.md</a> for the specific kits validated in each release.</p>
+<h3><a class="anchor" id="autotoc_md5"></a>
+Supported software and tools</h3>
+<p>This version of the library was validated for compatibility with the following software and tools:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadLeft">Software and tools   </th><th class="markdownTableHeadLeft">Version    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft">ModusToolbox&trade; software environment   </td><td class="markdownTableBodyLeft">3.9    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft">ModusToolbox&trade; Device Configurator   </td><td class="markdownTableBodyLeft">5.90    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft">GCC compiler   </td><td class="markdownTableBodyLeft">14.2.1    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft">IAR compiler   </td><td class="markdownTableBodyLeft">9.50.2    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft">Arm&reg; compiler 6   </td><td class="markdownTableBodyLeft">6.22    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft">LLVM compiler   </td><td class="markdownTableBodyLeft">22.1.0   </td></tr>
+</table>
+<h1><a class="anchor" id="autotoc_md6"></a>
+How to Use</h1>
+<h2><a class="anchor" id="autotoc_md7"></a>
+1. Add the library dependency</h2>
+<p>Add the appropriate core library using the ModusToolbox&trade; <b>Library Manager</b> (available in the ModusToolbox&trade; for VS Code extension and the Eclipse IDE), or by creating the corresponding <code>.mtb</code> file in the application's <code>deps</code> folder:</p>
+<ul>
+<li><p class="startli"><b>For Wi-Fi applications</b>, create a <code>wifi-core-freertos-lwip-mbedtls.mtb</code> file:</p>
+<div class="fragment"><div class="line">https://github.com/Infineon/wifi-core-freertos-lwip-mbedtls#latest-v4.X#$$ASSET_REPO$$/wifi-core-freertos-lwip-mbedtls/latest-v4.X</div>
+</div><!-- fragment --></li>
+<li><p class="startli"><b>For Ethernet applications</b>, create an <code>ethernet-core-freertos-lwip-mbedtls.mtb</code> file:</p>
+<div class="fragment"><div class="line">https://github.com/Infineon/ethernet-core-freertos-lwip-mbedtls#latest-v4.X#$$ASSET_REPO$$/ethernet-core-freertos-lwip-mbedtls/latest-v4.X</div>
+</div><!-- fragment --></li>
+</ul>
+<p>Then run <code>make getlibs</code> to fetch all required libraries.</p>
+<h2><a class="anchor" id="autotoc_md8"></a>
+Dependencies</h2>
+<p>The lwIP network interface integration library depends on the following:</p>
+<ul>
+<li><a href="https://github.com/Infineon/lwip-freertos-integration">lwIP FreeRTOS integration</a> - Provides the FreeRTOS OS-abstraction port required by lwIP.</li>
+<li><a href="https://savannah.nongnu.org/projects/lwip/">lwIP</a> - Lightweight open-source TCP/IP stack.</li>
+</ul>
+<p>These dependencies are fetched automatically when you include the <code>wifi-core-freertos-lwip-mbedtls</code> (Wi-Fi) or <code>ethernet-core-freertos-lwip-mbedtls</code> (Ethernet) core library and run <code>make getlibs</code>.</p>
+<h2><a class="anchor" id="autotoc_md9"></a>
+2. Initialize the network stack and bring up an interface</h2>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;cy_network_mw_core.h&quot;</span></div>
+<div class="line"> </div>
+<div class="line"><a class="code hl_struct" href="structcy__network__interface__context.html">cy_network_interface_context</a> *iface_ctx;</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">/* Step 1: Initialize the network stack */</span></div>
+<div class="line">cy_rslt_t result = <a class="code hl_function" href="group__group__lwip__network__interface__integration__functions.html#ga1344ede190aa5e0e3d30d29ccb672e72">cy_network_init</a>();</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">/* Step 2: Add a network interface (Wi-Fi STA example) */</span></div>
+<div class="line">result = <a class="code hl_function" href="group__group__lwip__network__interface__integration__functions.html#gabf2995f3fe153eba71d52981886cf5f9">cy_network_add_nw_interface</a>(<a class="code hl_enumvalue" href="group__group__lwip__network__interface__integration__enums.html#gga1609e48b69352ef0c60d2215ef6a2cefaa7d4d0352abfa47c5b1ea4c7f13162e6">CY_NETWORK_WIFI_STA_INTERFACE</a>, 0,</div>
+<div class="line">                                     whd_iface, mac_address,</div>
+<div class="line">                                     NULL <span class="comment">/* NULL for DHCP, or pass static IP */</span>,</div>
+<div class="line">                                     &amp;iface_ctx);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">/* Step 3: Bring up the network (starts DHCP if no static IP was provided) */</span></div>
+<div class="line">result = <a class="code hl_function" href="group__group__lwip__network__interface__integration__functions.html#ga9f0108965c7578de0d118ddd3003ba0c">cy_network_ip_up</a>(iface_ctx);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">/* Step 4: Retrieve the assigned IP address */</span></div>
+<div class="line">cy_nw_ip_address_t ip_addr;</div>
+<div class="line"><a class="code hl_function" href="group__group__lwip__network__interface__integration__functions.html#gae498113a5148caeb895ebc5d67fd41c8">cy_network_get_ip_address</a>(iface_ctx, &amp;ip_addr);</div>
+<div class="ttc" id="agroup__group__lwip__network__interface__integration__enums_html_gga1609e48b69352ef0c60d2215ef6a2cefaa7d4d0352abfa47c5b1ea4c7f13162e6"><div class="ttname"><a href="group__group__lwip__network__interface__integration__enums.html#gga1609e48b69352ef0c60d2215ef6a2cefaa7d4d0352abfa47c5b1ea4c7f13162e6">CY_NETWORK_WIFI_STA_INTERFACE</a></div><div class="ttdeci">@ CY_NETWORK_WIFI_STA_INTERFACE</div><div class="ttdoc">STA interface</div><div class="ttdef"><b>Definition</b> cy_network_mw_core.h:77</div></div>
+<div class="ttc" id="agroup__group__lwip__network__interface__integration__functions_html_ga1344ede190aa5e0e3d30d29ccb672e72"><div class="ttname"><a href="group__group__lwip__network__interface__integration__functions.html#ga1344ede190aa5e0e3d30d29ccb672e72">cy_network_init</a></div><div class="ttdeci">cy_rslt_t cy_network_init()</div><div class="ttdoc">Initializes the network stack, and allocates and initializes the resources needed by this library.</div></div>
+<div class="ttc" id="agroup__group__lwip__network__interface__integration__functions_html_ga9f0108965c7578de0d118ddd3003ba0c"><div class="ttname"><a href="group__group__lwip__network__interface__integration__functions.html#ga9f0108965c7578de0d118ddd3003ba0c">cy_network_ip_up</a></div><div class="ttdeci">cy_rslt_t cy_network_ip_up(cy_network_interface_context *iface_context)</div><div class="ttdoc">Brings up the network link layer and starts DHCP if required.</div></div>
+<div class="ttc" id="agroup__group__lwip__network__interface__integration__functions_html_gabf2995f3fe153eba71d52981886cf5f9"><div class="ttname"><a href="group__group__lwip__network__interface__integration__functions.html#gabf2995f3fe153eba71d52981886cf5f9">cy_network_add_nw_interface</a></div><div class="ttdeci">cy_rslt_t cy_network_add_nw_interface(cy_network_hw_interface_type_t iface_type, uint8_t iface_idx, void *hw_interface, uint8_t *mac_address, cy_network_static_ip_addr_t *ipaddr, cy_network_interface_context **iface_context)</div><div class="ttdoc">Adds a network interface.</div></div>
+<div class="ttc" id="agroup__group__lwip__network__interface__integration__functions_html_gae498113a5148caeb895ebc5d67fd41c8"><div class="ttname"><a href="group__group__lwip__network__interface__integration__functions.html#gae498113a5148caeb895ebc5d67fd41c8">cy_network_get_ip_address</a></div><div class="ttdeci">cy_rslt_t cy_network_get_ip_address(cy_network_interface_context *iface_context, cy_nw_ip_address_t *ip_addr)</div><div class="ttdoc">Retrieves the IPv4 address of the given interface.</div></div>
+<div class="ttc" id="astructcy__network__interface__context_html"><div class="ttname"><a href="structcy__network__interface__context.html">cy_network_interface_context</a></div><div class="ttdoc">Interface context structure to store the hardware and network interface structures.</div><div class="ttdef"><b>Definition</b> cy_network_mw_core.h:111</div></div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md10"></a>
+3. Register for IP change notifications (optional)</h2>
+<div class="fragment"><div class="line"><span class="keywordtype">void</span> my_ip_change_handler(<a class="code hl_struct" href="structcy__network__interface__context.html">cy_network_interface_context</a> *iface, <span class="keywordtype">void</span> *user_data)</div>
+<div class="line">{</div>
+<div class="line">    <span class="comment">/* Handle IP address change */</span></div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line"><a class="code hl_function" href="group__group__lwip__network__interface__integration__functions.html#ga8d7f732575e071b98b96dd6fb2265519">cy_network_register_ip_change_cb</a>(iface_ctx, my_ip_change_handler, NULL);</div>
+<div class="ttc" id="agroup__group__lwip__network__interface__integration__functions_html_ga8d7f732575e071b98b96dd6fb2265519"><div class="ttname"><a href="group__group__lwip__network__interface__integration__functions.html#ga8d7f732575e071b98b96dd6fb2265519">cy_network_register_ip_change_cb</a></div><div class="ttdeci">void cy_network_register_ip_change_cb(cy_network_interface_context *iface_context, cy_network_ip_change_callback_t cb, void *user_data)</div><div class="ttdoc">Helps to register/unregister for any IP address changes from the network stack.</div></div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md11"></a>
+4. Tear down the network</h2>
+<div class="fragment"><div class="line"><a class="code hl_function" href="group__group__lwip__network__interface__integration__functions.html#ga0873c42900c9eca69751048a14fe926f">cy_network_ip_down</a>(iface_ctx);</div>
+<div class="line"><a class="code hl_function" href="group__group__lwip__network__interface__integration__functions.html#gaf414d396ecdb54b41b2b0fdd65e6afef">cy_network_remove_nw_interface</a>(iface_ctx);</div>
+<div class="line"><a class="code hl_function" href="group__group__lwip__network__interface__integration__functions.html#ga52dabc3fc7fc5d33c1bec3cbb9d0176a">cy_network_deinit</a>();</div>
+<div class="ttc" id="agroup__group__lwip__network__interface__integration__functions_html_ga0873c42900c9eca69751048a14fe926f"><div class="ttname"><a href="group__group__lwip__network__interface__integration__functions.html#ga0873c42900c9eca69751048a14fe926f">cy_network_ip_down</a></div><div class="ttdeci">cy_rslt_t cy_network_ip_down(cy_network_interface_context *iface_context)</div><div class="ttdoc">Brings down the network interface and network link layer, and stops DHCP.</div></div>
+<div class="ttc" id="agroup__group__lwip__network__interface__integration__functions_html_ga52dabc3fc7fc5d33c1bec3cbb9d0176a"><div class="ttname"><a href="group__group__lwip__network__interface__integration__functions.html#ga52dabc3fc7fc5d33c1bec3cbb9d0176a">cy_network_deinit</a></div><div class="ttdeci">cy_rslt_t cy_network_deinit()</div><div class="ttdoc">Deinitializes the network stack, and releases the resources allocated in the cy_network_init function...</div></div>
+<div class="ttc" id="agroup__group__lwip__network__interface__integration__functions_html_gaf414d396ecdb54b41b2b0fdd65e6afef"><div class="ttname"><a href="group__group__lwip__network__interface__integration__functions.html#gaf414d396ecdb54b41b2b0fdd65e6afef">cy_network_remove_nw_interface</a></div><div class="ttdeci">cy_rslt_t cy_network_remove_nw_interface(cy_network_interface_context *iface_context)</div><div class="ttdoc">Removes a network interface.</div></div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md12"></a>
+Enabling debug logs</h2>
+<p>By default, all debug log messages are disabled. To enable them, add the <code>ENABLE_CONNECTIVITY_MIDDLEWARE_LOGS</code> macro to the <code>DEFINES</code> in your Makefile:</p>
+<div class="fragment"><div class="line">DEFINES+=ENABLE_CONNECTIVITY_MIDDLEWARE_LOGS</div>
+</div><!-- fragment --><p>Then call <code>cy_log_init()</code> provided by the <em>cy-log</em> module (part of the <em>connectivity-utilities</em> library). See the <a href="https://infineon.github.io/connectivity-utilities/api_reference_manual/html/group__logging__utils.html">Connectivity Utilities Reference Manual</a> for cy-log details.</p>
+<h2><a class="anchor" id="autotoc_md13"></a>
+Troubleshooting</h2>
+<ul>
+<li><b>DHCP timeout</b>: Ensure the network cable is connected (Ethernet) or Wi-Fi credentials are correct and the AP is reachable. The default DHCP timeout is 15 seconds.</li>
+<li><b>Interface not found</b>: Verify the correct <code>cy_network_hw_interface_type_t</code> enum value and interface index are used.</li>
+<li><b>Build errors with XMC devices</b>: Ensure the appropriate COMPONENT defines (e.g., <code>COMPONENT_XMC47XX</code>) are set in the build configuration.</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md14"></a>
+Release Notes and Changelog</h1>
+<ul>
+<li><a class="el" href="md__2builds_2repo_2lwip-network-interface-integration_2_r_e_l_e_a_s_e.html">RELEASE.md</a> - Detailed release notes for all versions</li>
+<li><a class="el" href="md__2builds_2repo_2lwip-network-interface-integration_2porting__guide.html">Porting Guide</a> - Migration guide from Wi-Fi middleware core to lwIP network interface integration</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md15"></a>
+License</h1>
+<p>This library is provided under Infineon software license terms. It integrates the third-party lwIP TCP/IP stack and depends on the FreeRTOS-based <code>lwip-freertos-integration</code> library; when fetched, it also pulls the <code>wifi-core-freertos-lwip-mbedtls</code> or <code>ethernet-core-freertos-lwip-mbedtls</code> core assets. These third-party components are governed by their own respective license terms. You are responsible for reviewing and accepting all applicable third-party license terms.</p>
+<ul>
+<li><a href="./LICENSE.txt">LICENSE</a></li>
+</ul>
+<h1><a class="anchor" id="autotoc_md16"></a>
+Copyright</h1>
+<p>(c) 2026, Infineon Technologies AG, or an affiliate of Infineon
+<p>Technologies AG.  All rights reserved. </p>
 </div></div><!-- PageDoc -->
 </div><!-- contents -->
 </div><!-- doc-content -->

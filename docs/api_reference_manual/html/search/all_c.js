@@ -1,6 +1,8 @@
 var searchData=
 [
-  ['specific_20error_20codes_0',['WiFi middleware specific error codes',['../group__generic__lwip__whd__port__defines.html',1,'']]],
-  ['structures_1',['Port structures',['../group__group__lwip__network__interface__integration__structures.html',1,'']]],
-  ['supported_20platforms_2',['Supported Platforms',['../index.html#section_platforms',1,'']]]
+  ['debug_20logs_0',['Enabling debug logs',['../index.html#autotoc_md12',1,'']]],
+  ['dependencies_1',['Dependencies',['../index.html#autotoc_md8',1,'']]],
+  ['dependency_2',['1. Add the library dependency',['../index.html#autotoc_md7',1,'']]],
+  ['down_20the_20network_3',['4. Tear down the network',['../index.html#autotoc_md11',1,'']]],
+  ['drivers_4',['lwIP Network Interface Integration Library - Seamlessly Connect lwIP TCP/IP Stack with Wi-Fi and Ethernet Drivers',['../index.html',1,'']]]
 ];

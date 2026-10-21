@@ -25,13 +25,14 @@
 var NAVTREE =
 [
   [ "lwIP network interface integration library", "index.html", [
-    [ "Overview", "index.html", null ]
+    [ "lwIP Network Interface Integration Library - Seamlessly Connect lwIP TCP/IP Stack with Wi-Fi and Ethernet Drivers", "index.html", null ],
+    [ "API Reference", "topics.html", "topics" ]
   ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"index.html"
+"group__generic__lwip__whd__port__defines.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

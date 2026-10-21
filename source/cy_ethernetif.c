@@ -163,15 +163,21 @@
  ******************************************************/
 #if !defined(CY_XMC4XXX_DEVICES)
 /* PDL Driver requires the data to be 32 byte aligned */
+/* Allow the application to override the memory section for the Ethernet TX data buffer. */
+#ifndef CY_ETH_DATA_BUF_SECTION
 #ifdef COMPONENT_PSE84
 #if (CY_CPU_CORTEX_M55)
-CY_SECTION(".cy_gpu_buf")
+#define CY_ETH_DATA_BUF_SECTION CY_SECTION(".cy_gpu_buf")
 #elif (CY_CPU_CORTEX_M33)
-CY_SECTION(".cy_shared_socmem")
+#define CY_ETH_DATA_BUF_SECTION CY_SECTION(".cy_shared_socmem")
 #endif
-#else /* !COMPONENT_PSE84 */
-CY_SECTION_SHAREDMEM
+#elif defined(COMPONENT_PSE8X7)
+#define CY_ETH_DATA_BUF_SECTION CY_SECTION_NON_CACHE
+#else /* !COMPONENT_PSE84 OR PSE8X7 */
+#define CY_ETH_DATA_BUF_SECTION CY_SECTION_SHAREDMEM
 #endif
+#endif /* CY_ETH_DATA_BUF_SECTION */
+CY_ETH_DATA_BUF_SECTION
 CY_ALIGN(32)
 static   uint8_t                              data_buffer[TX_DATA_BUF_MAX][CY_ETH_SIZE_MAX_FRAME];
 volatile uint8_t                              tx_free_buf_index;
